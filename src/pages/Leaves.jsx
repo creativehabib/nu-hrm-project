@@ -116,23 +116,43 @@ export default function Leaves() {
   };
 
   const handleRequestDelete = async (requestId) => {
-    setRequests((prev) => prev.filter((request) => request.id !== requestId));
-
     if (!supabase) {
+      setRequestError("Supabase কনফিগার হয়নি।");
       return;
     }
 
-    await supabase.from("leave_requests").delete().eq("id", requestId);
+    const { error: deleteError } = await supabase
+      .from("leave_requests")
+      .delete()
+      .eq("id", requestId);
+
+    if (deleteError) {
+      setRequestError(`ছুটি আবেদন মুছতে সমস্যা হয়েছে: ${deleteError.message}`);
+      return;
+    }
+
+    setRequestError("");
+    setRequests((prev) => prev.filter((request) => request.id !== requestId));
   };
 
   const handleHolidayDelete = async (holidayId) => {
-    setHolidays((prev) => prev.filter((holiday) => holiday.id !== holidayId));
-
     if (!supabase) {
+      setHolidayError("Supabase কনফিগার হয়নি।");
       return;
     }
 
-    await supabase.from("holidays").delete().eq("id", holidayId);
+    const { error: deleteError } = await supabase
+      .from("holidays")
+      .delete()
+      .eq("id", holidayId);
+
+    if (deleteError) {
+      setHolidayError(`হলিডে মুছতে সমস্যা হয়েছে: ${deleteError.message}`);
+      return;
+    }
+
+    setHolidayError("");
+    setHolidays((prev) => prev.filter((holiday) => holiday.id !== holidayId));
   };
 
   const handleRequestSubmit = async (event) => {
@@ -150,6 +170,11 @@ export default function Leaves() {
 
     setRequestError("");
 
+    if (!supabase) {
+      setRequestError("Supabase কনফিগার হয়নি।");
+      return;
+    }
+
     if (editingRequestId) {
       const updated = {
         id: editingRequestId,
@@ -160,54 +185,51 @@ export default function Leaves() {
         status: requestForm.status
       };
 
-      setRequests((prev) =>
-        prev.map((request) => (request.id === editingRequestId ? { ...request, ...updated } : request))
-      );
+      const { error: updateError } = await supabase
+        .from("leave_requests")
+        .update({
+          employee: updated.employee,
+          type: updated.type,
+          start_date: updated.start_date,
+          end_date: updated.end_date,
+          status: updated.status
+        })
+        .eq("id", editingRequestId);
 
-      if (supabase) {
-        await supabase
-          .from("leave_requests")
-          .update({
-            employee: updated.employee,
-            type: updated.type,
-            start_date: updated.start_date,
-            end_date: updated.end_date,
-            status: updated.status
-          })
-          .eq("id", editingRequestId);
+      if (updateError) {
+        setRequestError(`ছুটি আবেদন আপডেট হয়নি: ${updateError.message}`);
+        return;
       }
+
+      setRequests((prev) =>
+        prev.map((request) =>
+          request.id === editingRequestId ? { ...request, ...updated } : request
+        )
+      );
 
       resetRequestForm();
       return;
     }
 
-    const newRequest = {
-      id: Date.now(),
-      employee: requestForm.employee.trim(),
-      type: requestForm.type.trim(),
-      start_date: requestForm.start_date,
-      end_date: requestForm.end_date || null,
-      status: requestForm.status
-    };
+    const { data, error: insertError } = await supabase
+      .from("leave_requests")
+      .insert({
+        employee: requestForm.employee.trim(),
+        type: requestForm.type.trim(),
+        start_date: requestForm.start_date,
+        end_date: requestForm.end_date || null,
+        status: requestForm.status
+      })
+      .select("id, employee, type, start_date, end_date, status")
+      .single();
 
-    setRequests((prev) => [newRequest, ...prev]);
+    if (insertError) {
+      setRequestError(`ছুটি আবেদন সংরক্ষণ হয়নি: ${insertError.message}`);
+      return;
+    }
 
-    if (supabase) {
-      const { data } = await supabase
-        .from("leave_requests")
-        .insert({
-          employee: newRequest.employee,
-          type: newRequest.type,
-          start_date: newRequest.start_date,
-          end_date: newRequest.end_date,
-          status: newRequest.status
-        })
-        .select("id, employee, type, start_date, end_date, status")
-        .single();
-
-      if (data) {
-        setRequests((prev) => [data, ...prev.filter((request) => request.id !== newRequest.id)]);
-      }
+    if (data) {
+      setRequests((prev) => [data, ...prev]);
     }
 
     resetRequestForm();
@@ -223,6 +245,11 @@ export default function Leaves() {
 
     setHolidayError("");
 
+    if (!supabase) {
+      setHolidayError("Supabase কনফিগার হয়নি।");
+      return;
+    }
+
     if (editingHolidayId) {
       const updated = {
         id: editingHolidayId,
@@ -230,39 +257,39 @@ export default function Leaves() {
         title: holidayForm.title.trim()
       };
 
-      setHolidays((prev) =>
-        prev.map((holiday) => (holiday.id === editingHolidayId ? { ...holiday, ...updated } : holiday))
-      );
+      const { error: updateError } = await supabase
+        .from("holidays")
+        .update({ date: updated.date, title: updated.title })
+        .eq("id", editingHolidayId);
 
-      if (supabase) {
-        await supabase
-          .from("holidays")
-          .update({ date: updated.date, title: updated.title })
-          .eq("id", editingHolidayId);
+      if (updateError) {
+        setHolidayError(`হলিডে আপডেট হয়নি: ${updateError.message}`);
+        return;
       }
+
+      setHolidays((prev) =>
+        prev.map((holiday) =>
+          holiday.id === editingHolidayId ? { ...holiday, ...updated } : holiday
+        )
+      );
 
       resetHolidayForm();
       return;
     }
 
-    const newHoliday = {
-      id: Date.now(),
-      date: holidayForm.date,
-      title: holidayForm.title.trim()
-    };
+    const { data, error: insertError } = await supabase
+      .from("holidays")
+      .insert({ date: holidayForm.date, title: holidayForm.title.trim() })
+      .select("id, date, title")
+      .single();
 
-    setHolidays((prev) => [newHoliday, ...prev]);
+    if (insertError) {
+      setHolidayError(`হলিডে সংরক্ষণ হয়নি: ${insertError.message}`);
+      return;
+    }
 
-    if (supabase) {
-      const { data } = await supabase
-        .from("holidays")
-        .insert({ date: newHoliday.date, title: newHoliday.title })
-        .select("id, date, title")
-        .single();
-
-      if (data) {
-        setHolidays((prev) => [data, ...prev.filter((holiday) => holiday.id !== newHoliday.id)]);
-      }
+    if (data) {
+      setHolidays((prev) => [data, ...prev]);
     }
 
     resetHolidayForm();

@@ -136,13 +136,23 @@ export default function Employees() {
   };
 
   const handleDelete = async (empId) => {
-    setEmployees((prev) => prev.filter((emp) => emp.id !== empId));
-
     if (!supabase) {
+      setError("Supabase কনফিগার হয়নি।");
       return;
     }
 
-    await supabase.from("employees").delete().eq("id", empId);
+    const { error: deleteError } = await supabase
+      .from("employees")
+      .delete()
+      .eq("id", empId);
+
+    if (deleteError) {
+      setError(`কর্মী মুছতে সমস্যা হয়েছে: ${deleteError.message}`);
+      return;
+    }
+
+    setError("");
+    setEmployees((prev) => prev.filter((emp) => emp.id !== empId));
   };
 
   const handleSubmit = async (event) => {
@@ -162,6 +172,11 @@ export default function Employees() {
     const designationName =
       designations.find((desig) => desig.id === designationIdValue)?.name ?? "-";
 
+    if (!supabase) {
+      setError("Supabase কনফিগার হয়নি।");
+      return;
+    }
+
     if (editingId) {
       const updated = {
         id: editingId,
@@ -180,92 +195,79 @@ export default function Employees() {
         basic_salary: Number(formState.basic_salary) || 0
       };
 
+      const { error: updateError } = await supabase
+        .from("employees")
+        .update({
+          name: updated.name,
+          pf_number: updated.pf_number,
+          mobile_number: updated.mobile_number || null,
+          present_address: updated.present_address || null,
+          permanent_address: updated.permanent_address || null,
+          blood_group: updated.blood_group || null,
+          home_district: updated.home_district || null,
+          about: updated.about || null,
+          dept_id: updated.dept_id,
+          desig_id: updated.desig_id,
+          basic_salary: updated.basic_salary || 0
+        })
+        .eq("id", editingId);
+
+      if (updateError) {
+        setError(`কর্মী আপডেট হয়নি: ${updateError.message}`);
+        return;
+      }
+
       setEmployees((prev) =>
         prev.map((emp) => (emp.id === editingId ? { ...emp, ...updated } : emp))
       );
-
-      if (supabase) {
-        await supabase
-          .from("employees")
-          .update({
-            name: updated.name,
-            pf_number: updated.pf_number,
-            mobile_number: updated.mobile_number || null,
-            present_address: updated.present_address || null,
-            permanent_address: updated.permanent_address || null,
-            blood_group: updated.blood_group || null,
-            home_district: updated.home_district || null,
-            about: updated.about || null,
-            dept_id: updated.dept_id,
-            desig_id: updated.desig_id,
-            basic_salary: updated.basic_salary || 0
-          })
-          .eq("id", editingId);
-      }
 
       resetForm();
       return;
     }
 
-    const newEmployee = {
-      id: Date.now(),
-      name: formState.name.trim(),
-      pf_number: formState.pf_number.trim(),
-      mobile_number: formState.mobile_number.trim(),
-      present_address: formState.present_address.trim(),
-      permanent_address: formState.permanent_address.trim(),
-      blood_group: formState.blood_group.trim(),
-      home_district: formState.home_district.trim(),
-      about: formState.about.trim(),
-      designation: designationName,
-      dept_id: departmentIdValue,
-      desig_id: designationIdValue,
-      dept: departmentName,
-      basic_salary: Number(formState.basic_salary) || 0
-    };
+    const { data, error: insertError } = await supabase
+      .from("employees")
+      .insert({
+        name: formState.name.trim(),
+        pf_number: formState.pf_number.trim(),
+        mobile_number: formState.mobile_number.trim() || null,
+        present_address: formState.present_address.trim() || null,
+        permanent_address: formState.permanent_address.trim() || null,
+        blood_group: formState.blood_group.trim() || null,
+        home_district: formState.home_district.trim() || null,
+        about: formState.about.trim() || null,
+        basic_salary: Number(formState.basic_salary) || 0,
+        dept_id: departmentIdValue,
+        desig_id: designationIdValue
+      })
+      .select(
+        "id, name, pf_number, mobile_number, present_address, permanent_address, blood_group, home_district, about, basic_salary, dept_id, desig_id, departments(name), designations(name)"
+      )
+      .single();
 
-    setEmployees((prev) => [newEmployee, ...prev]);
+    if (insertError) {
+      setError(`কর্মী সংরক্ষণ হয়নি: ${insertError.message}`);
+      return;
+    }
 
-    if (supabase) {
-      const { data } = await supabase
-        .from("employees")
-        .insert({
-          name: newEmployee.name,
-          pf_number: newEmployee.pf_number,
-          mobile_number: newEmployee.mobile_number || null,
-          present_address: newEmployee.present_address || null,
-          permanent_address: newEmployee.permanent_address || null,
-          blood_group: newEmployee.blood_group || null,
-          home_district: newEmployee.home_district || null,
-          about: newEmployee.about || null,
-          basic_salary: newEmployee.basic_salary || 0,
-          dept_id: newEmployee.dept_id,
-          desig_id: newEmployee.desig_id
-        })
-        .select(
-          "id, name, pf_number, mobile_number, present_address, permanent_address, blood_group, home_district, about, basic_salary, dept_id, desig_id, departments(name), designations(name)"
-        )
-        .single();
-
-      if (data) {
-        const normalized = {
-          id: data.id,
-          name: data.name,
-          pf_number: data.pf_number,
-          mobile_number: data.mobile_number,
-          present_address: data.present_address,
-          permanent_address: data.permanent_address,
-          blood_group: data.blood_group,
-          home_district: data.home_district,
-          about: data.about,
-          designation: data.designations?.name ?? "-",
-          dept: data.departments?.name ?? "-",
-          dept_id: data.dept_id ?? "",
-          desig_id: data.desig_id ?? "",
-          basic_salary: data.basic_salary
-        };
-        setEmployees((prev) => [normalized, ...prev.filter((emp) => emp.id !== newEmployee.id)]);
-      }
+    if (data) {
+      const normalized = {
+        id: data.id,
+        name: data.name,
+        pf_number: data.pf_number,
+        mobile_number: data.mobile_number,
+        present_address: data.present_address,
+        permanent_address: data.permanent_address,
+        blood_group: data.blood_group,
+        home_district: data.home_district,
+        about: data.about,
+        designation: data.designations?.name ?? "-",
+        dept: data.departments?.name ?? "-",
+        dept_id: data.dept_id ?? "",
+        desig_id: data.desig_id ?? "",
+        basic_salary: data.basic_salary
+      };
+      setEmployees((prev) => [normalized, ...prev]);
     }
 
     resetForm();

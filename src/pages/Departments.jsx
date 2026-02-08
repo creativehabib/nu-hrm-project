@@ -52,13 +52,23 @@ export default function Departments() {
   };
 
   const handleDelete = async (deptId) => {
-    setDepartments((prev) => prev.filter((dept) => dept.id !== deptId));
-
     if (!supabase) {
+      setError("Supabase কনফিগার হয়নি।");
       return;
     }
 
-    await supabase.from("departments").delete().eq("id", deptId);
+    const { error: deleteError } = await supabase
+      .from("departments")
+      .delete()
+      .eq("id", deptId);
+
+    if (deleteError) {
+      setError(`বিভাগ মুছতে সমস্যা হয়েছে: ${deleteError.message}`);
+      return;
+    }
+
+    setError("");
+    setDepartments((prev) => prev.filter((dept) => dept.id !== deptId));
   };
 
   const handleSubmit = async (event) => {
@@ -70,49 +80,52 @@ export default function Departments() {
 
     setError("");
 
+    if (!supabase) {
+      setError("Supabase কনফিগার হয়নি।");
+      return;
+    }
+
     if (editingId) {
       const updated = {
         ...formState,
         id: editingId
       };
 
+      const { error: updateError } = await supabase
+        .from("departments")
+        .update({
+          name: updated.name
+        })
+        .eq("id", editingId);
+
+      if (updateError) {
+        setError(`বিভাগ আপডেট হয়নি: ${updateError.message}`);
+        return;
+      }
+
       setDepartments((prev) =>
         prev.map((dept) => (dept.id === editingId ? { ...dept, ...updated } : dept))
       );
-
-      if (supabase) {
-        await supabase
-          .from("departments")
-          .update({
-            name: updated.name
-          })
-          .eq("id", editingId);
-      }
 
       resetForm();
       return;
     }
 
-    const newDepartment = {
-      id: Date.now(),
-      name: formState.name.trim(),
-      created_at: new Date().toISOString()
-    };
+    const { data, error: insertError } = await supabase
+      .from("departments")
+      .insert({
+        name: formState.name.trim()
+      })
+      .select("id, name, created_at")
+      .single();
 
-    setDepartments((prev) => [newDepartment, ...prev]);
+    if (insertError) {
+      setError(`বিভাগ সংরক্ষণ হয়নি: ${insertError.message}`);
+      return;
+    }
 
-    if (supabase) {
-      const { data } = await supabase
-        .from("departments")
-        .insert({
-          name: newDepartment.name
-        })
-        .select("id, name, created_at")
-        .single();
-
-      if (data) {
-        setDepartments((prev) => [data, ...prev.filter((dept) => dept.id !== newDepartment.id)]);
-      }
+    if (data) {
+      setDepartments((prev) => [data, ...prev]);
     }
 
     resetForm();

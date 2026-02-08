@@ -54,13 +54,23 @@ export default function Designations() {
   };
 
   const handleDelete = async (designationId) => {
-    setDesignations((prev) => prev.filter((row) => row.id !== designationId));
-
     if (!supabase) {
+      setError("Supabase কনফিগার হয়নি।");
       return;
     }
 
-    await supabase.from("designations").delete().eq("id", designationId);
+    const { error: deleteError } = await supabase
+      .from("designations")
+      .delete()
+      .eq("id", designationId);
+
+    if (deleteError) {
+      setError(`পদবী মুছতে সমস্যা হয়েছে: ${deleteError.message}`);
+      return;
+    }
+
+    setError("");
+    setDesignations((prev) => prev.filter((row) => row.id !== designationId));
   };
 
   const handleSubmit = async (event) => {
@@ -72,48 +82,50 @@ export default function Designations() {
 
     setError("");
 
+    if (!supabase) {
+      setError("Supabase কনফিগার হয়নি।");
+      return;
+    }
+
     if (editingId) {
       const updated = { ...formState, id: editingId };
+      const { error: updateError } = await supabase
+        .from("designations")
+        .update({
+          name: updated.name,
+          grade: updated.grade || null
+        })
+        .eq("id", editingId);
+
+      if (updateError) {
+        setError(`পদবী আপডেট হয়নি: ${updateError.message}`);
+        return;
+      }
+
       setDesignations((prev) =>
         prev.map((row) => (row.id === editingId ? { ...row, ...updated } : row))
       );
-
-      if (supabase) {
-        await supabase
-          .from("designations")
-          .update({
-            name: updated.name,
-            grade: updated.grade || null
-          })
-          .eq("id", editingId);
-      }
 
       resetForm();
       return;
     }
 
-    const newDesignation = {
-      id: Date.now(),
-      name: formState.name.trim(),
-      grade: formState.grade.trim(),
-      created_at: new Date().toISOString()
-    };
+    const { data, error: insertError } = await supabase
+      .from("designations")
+      .insert({
+        name: formState.name.trim(),
+        grade: formState.grade.trim() || null
+      })
+      .select("id, name, grade, created_at")
+      .single();
 
-    setDesignations((prev) => [newDesignation, ...prev]);
+    if (insertError) {
+      setError(`পদবী সংরক্ষণ হয়নি: ${insertError.message}`);
+      return;
+    }
 
-    if (supabase) {
-      const { data } = await supabase
-        .from("designations")
-        .insert({
-          name: newDesignation.name,
-          grade: newDesignation.grade || null
-        })
-        .select("id, name, grade, created_at")
-        .single();
-
-      if (data) {
-        setDesignations((prev) => [data, ...prev.filter((row) => row.id !== newDesignation.id)]);
-      }
+    if (data) {
+      setDesignations((prev) => [data, ...prev]);
     }
 
     resetForm();
