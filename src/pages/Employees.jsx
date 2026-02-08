@@ -1,40 +1,9 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../supabaseClient";
 
-const fallbackEmployees = [
-  {
-    id: 101,
-    name: "সুমাইয়া ইসলাম",
-    pf_number: "PF-1001",
-    mobile_number: "01711-000000",
-    designation: "HR Officer",
-    dept: "মানব সম্পদ",
-    department_id: 1,
-    job_grade: "G-5",
-    basic_salary: 35000
-  },
-  {
-    id: 102,
-    name: "রেজাউল করিম",
-    pf_number: "PF-1002",
-    mobile_number: "01811-000000",
-    designation: "Software Engineer",
-    dept: "আইটি",
-    department_id: 3,
-    job_grade: "G-6",
-    basic_salary: 50000
-  }
-];
-
-const fallbackDepartments = [
-  { id: 1, name: "মানব সম্পদ" },
-  { id: 2, name: "হিসাব" },
-  { id: 3, name: "আইটি" }
-];
-
 export default function Employees() {
-  const [employees, setEmployees] = useState(fallbackEmployees);
-  const [departments, setDepartments] = useState(fallbackDepartments);
+  const [employees, setEmployees] = useState([]);
+  const [departments, setDepartments] = useState([]);
   const [loading, setLoading] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [formState, setFormState] = useState({
@@ -355,35 +324,41 @@ export default function Employees() {
             </tr>
           </thead>
           <tbody>
-            {employees.map((emp) => (
-              <tr key={emp.id}>
-                <td>{emp.name}</td>
-                <td>{emp.pf_number}</td>
-                <td>{emp.dept}</td>
-                <td>{emp.designation}</td>
-                <td>{emp.job_grade}</td>
-                <td>{emp.basic_salary.toLocaleString("bn-BD")}</td>
-                <td>{emp.mobile_number}</td>
-                <td>
-                  <div className="inline-actions">
-                    <button
-                      className="button secondary"
-                      type="button"
-                      onClick={() => handleEdit(emp)}
-                    >
-                      সম্পাদনা
-                    </button>
-                    <button
-                      className="button danger"
-                      type="button"
-                      onClick={() => handleDelete(emp.id)}
-                    >
-                      মুছুন
-                    </button>
-                  </div>
-                </td>
+            {employees.length === 0 ? (
+              <tr>
+                <td colSpan={8}>কোন কর্মী পাওয়া যায়নি।</td>
               </tr>
-            ))}
+            ) : (
+              employees.map((emp) => (
+                <tr key={emp.id}>
+                  <td>{emp.name}</td>
+                  <td>{emp.pf_number}</td>
+                  <td>{emp.dept}</td>
+                  <td>{emp.designation}</td>
+                  <td>{emp.job_grade}</td>
+                  <td>{Number(emp.basic_salary || 0).toLocaleString("bn-BD")}</td>
+                  <td>{emp.mobile_number || "-"}</td>
+                  <td>
+                    <div className="inline-actions">
+                      <button
+                        className="button secondary"
+                        type="button"
+                        onClick={() => handleEdit(emp)}
+                      >
+                        সম্পাদনা
+                      </button>
+                      <button
+                        className="button danger"
+                        type="button"
+                        onClick={() => handleDelete(emp.id)}
+                      >
+                        মুছুন
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))
+            )}
           </tbody>
         </table>
         {loading && <p>লোড হচ্ছে...</p>}
