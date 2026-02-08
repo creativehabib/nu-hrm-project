@@ -18,6 +18,8 @@ create table if not exists employees (
   about text,
   blood_group text,
   home_district text,
+  present_address text,
+  permanent_address text,
   email text unique,
   dept_id bigint references departments (id) on delete set null,
   desig_id bigint references designations (id) on delete set null,
