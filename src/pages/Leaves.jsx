@@ -10,8 +10,10 @@ const statusOptions = [
 export default function Leaves() {
   const [requests, setRequests] = useState([]);
   const [holidays, setHolidays] = useState([]);
+  const [employees, setEmployees] = useState([]);
   const [loadingRequests, setLoadingRequests] = useState(false);
   const [loadingHolidays, setLoadingHolidays] = useState(false);
+  const [loadingEmployees, setLoadingEmployees] = useState(false);
   const [editingRequestId, setEditingRequestId] = useState(null);
   const [editingHolidayId, setEditingHolidayId] = useState(null);
   const [requestForm, setRequestForm] = useState({
@@ -65,8 +67,27 @@ export default function Leaves() {
       setLoadingHolidays(false);
     };
 
+    const loadEmployees = async () => {
+      if (!supabase) {
+        return;
+      }
+
+      setLoadingEmployees(true);
+      const { data, error } = await supabase
+        .from("employees")
+        .select("id, name")
+        .order("name");
+
+      if (!error && data) {
+        setEmployees(data);
+      }
+
+      setLoadingEmployees(false);
+    };
+
     loadRequests();
     loadHolidays();
+    loadEmployees();
   }, []);
 
   const resetRequestForm = () => {
@@ -309,6 +330,10 @@ export default function Leaves() {
     return `${start} - ${end}`;
   };
 
+  const employeeNames = employees.map((employee) => employee.name).filter(Boolean);
+  const isSelectedEmployeeMissing =
+    requestForm.employee && !employeeNames.includes(requestForm.employee);
+
   return (
     <div>
       <header className="page-header">
@@ -326,12 +351,24 @@ export default function Leaves() {
         <form className="form-grid" onSubmit={handleRequestSubmit}>
           <label className="field">
             কর্মী
-            <input
+            <select
               name="employee"
               value={requestForm.employee}
               onChange={handleRequestChange}
-              placeholder="কর্মীর নাম"
-            />
+              disabled={loadingEmployees}
+            >
+              <option value="">
+                {loadingEmployees ? "লোড হচ্ছে..." : "কর্মী নির্বাচন করুন"}
+              </option>
+              {isSelectedEmployeeMissing && (
+                <option value={requestForm.employee}>{requestForm.employee}</option>
+              )}
+              {employees.map((employee) => (
+                <option key={employee.id} value={employee.name ?? ""}>
+                  {employee.name}
+                </option>
+              ))}
+            </select>
           </label>
           <label className="field">
             ছুটির ধরন
