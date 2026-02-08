@@ -65,13 +65,31 @@ body {
 
 .table-toolbar {
   display: flex;
-  justify-content: flex-end;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 16px;
+  flex-wrap: wrap;
   margin-bottom: 16px;
 }
 
 .table-toolbar .field {
   max-width: 320px;
   width: 100%;
+}
+
+.employee-count {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.employee-count span {
+  background: #eef2ff;
+  border-radius: 999px;
+  padding: 6px 12px;
+  font-size: 0.9rem;
 }
 
 .card-grid {
