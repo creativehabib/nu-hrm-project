@@ -279,6 +279,7 @@ body {
   border: 1px solid #e5e7eb;
   border-radius: 10px;
   overflow: hidden;
+  box-shadow: none;
 }
 
 .print-table th {
