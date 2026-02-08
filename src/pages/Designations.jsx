@@ -1,65 +1,58 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../supabaseClient";
 
-const fallbackDepartments = [
+const fallbackDesignations = [
   {
     id: 1,
-    name: "মানব সম্পদ",
-    code: "HR-001",
-    manager: "সাদিয়া রহমান",
-    created_at: "2024-07-01"
+    title: "HR Officer",
+    department: "মানব সম্পদ",
+    grade: "G-5",
+    created_at: "2024-07-04"
   },
   {
     id: 2,
-    name: "হিসাব",
-    code: "ACC-002",
-    manager: "মাসুদ করিম",
-    created_at: "2024-07-03"
-  },
-  {
-    id: 3,
-    name: "আইটি",
-    code: "IT-003",
-    manager: "আরিফুল ইসলাম",
-    created_at: "2024-07-05"
+    title: "Senior Accountant",
+    department: "হিসাব",
+    grade: "G-6",
+    created_at: "2024-07-06"
   }
 ];
 
-export default function Departments() {
-  const [departments, setDepartments] = useState(fallbackDepartments);
+export default function Designations() {
+  const [designations, setDesignations] = useState(fallbackDesignations);
   const [loading, setLoading] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [formState, setFormState] = useState({
-    name: "",
-    code: "",
-    manager: ""
+    title: "",
+    department: "",
+    grade: ""
   });
   const [error, setError] = useState("");
 
   useEffect(() => {
-    const loadDepartments = async () => {
+    const loadDesignations = async () => {
       if (!supabase) {
         return;
       }
 
       setLoading(true);
       const { data, error } = await supabase
-        .from("departments")
-        .select("id, name, code, manager, created_at")
+        .from("designations")
+        .select("id, title, department, grade, created_at")
         .order("created_at", { ascending: false });
 
       if (!error && data) {
-        setDepartments(data);
+        setDesignations(data);
       }
 
       setLoading(false);
     };
 
-    loadDepartments();
+    loadDesignations();
   }, []);
 
   const resetForm = () => {
-    setFormState({ name: "", code: "", manager: "" });
+    setFormState({ title: "", department: "", grade: "" });
     setEditingId(null);
     setError("");
   };
@@ -69,52 +62,48 @@ export default function Departments() {
     setFormState((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleEdit = (dept) => {
+  const handleEdit = (designation) => {
     setFormState({
-      name: dept.name ?? "",
-      code: dept.code ?? "",
-      manager: dept.manager ?? ""
+      title: designation.title ?? "",
+      department: designation.department ?? "",
+      grade: designation.grade ?? ""
     });
-    setEditingId(dept.id);
+    setEditingId(designation.id);
     setError("");
   };
 
-  const handleDelete = async (deptId) => {
-    setDepartments((prev) => prev.filter((dept) => dept.id !== deptId));
+  const handleDelete = async (designationId) => {
+    setDesignations((prev) => prev.filter((row) => row.id !== designationId));
 
     if (!supabase) {
       return;
     }
 
-    await supabase.from("departments").delete().eq("id", deptId);
+    await supabase.from("designations").delete().eq("id", designationId);
   };
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-    if (!formState.name.trim()) {
-      setError("বিভাগের নাম লিখুন।");
+    if (!formState.title.trim()) {
+      setError("পদবীর নাম লিখুন।");
       return;
     }
 
     setError("");
 
     if (editingId) {
-      const updated = {
-        ...formState,
-        id: editingId
-      };
-
-      setDepartments((prev) =>
-        prev.map((dept) => (dept.id === editingId ? { ...dept, ...updated } : dept))
+      const updated = { ...formState, id: editingId };
+      setDesignations((prev) =>
+        prev.map((row) => (row.id === editingId ? { ...row, ...updated } : row))
       );
 
       if (supabase) {
         await supabase
-          .from("departments")
+          .from("designations")
           .update({
-            name: updated.name,
-            code: updated.code || null,
-            manager: updated.manager || null
+            title: updated.title,
+            department: updated.department || null,
+            grade: updated.grade || null
           })
           .eq("id", editingId);
       }
@@ -123,29 +112,29 @@ export default function Departments() {
       return;
     }
 
-    const newDepartment = {
+    const newDesignation = {
       id: Date.now(),
-      name: formState.name.trim(),
-      code: formState.code.trim(),
-      manager: formState.manager.trim(),
+      title: formState.title.trim(),
+      department: formState.department.trim(),
+      grade: formState.grade.trim(),
       created_at: new Date().toISOString()
     };
 
-    setDepartments((prev) => [newDepartment, ...prev]);
+    setDesignations((prev) => [newDesignation, ...prev]);
 
     if (supabase) {
       const { data } = await supabase
-        .from("departments")
+        .from("designations")
         .insert({
-          name: newDepartment.name,
-          code: newDepartment.code || null,
-          manager: newDepartment.manager || null
+          title: newDesignation.title,
+          department: newDesignation.department || null,
+          grade: newDesignation.grade || null
         })
-        .select("id, name, code, manager, created_at")
+        .select("id, title, department, grade, created_at")
         .single();
 
       if (data) {
-        setDepartments((prev) => [data, ...prev.filter((dept) => dept.id !== newDepartment.id)]);
+        setDesignations((prev) => [data, ...prev.filter((row) => row.id !== newDesignation.id)]);
       }
     }
 
@@ -156,42 +145,42 @@ export default function Departments() {
     <div>
       <header className="page-header">
         <div>
-          <h2>ডিপার্টমেন্ট</h2>
-          <p>বিভাগের তালিকা এবং নতুন বিভাগ যোগ করুন।</p>
+          <h2>পদবী</h2>
+          <p>পদবীর তালিকা এবং নতুন পদবী যোগ করুন।</p>
         </div>
         <button className="button" type="button" onClick={resetForm}>
-          নতুন বিভাগ
+          নতুন পদবী
         </button>
       </header>
 
       <section className="section card">
-        <h3>{editingId ? "বিভাগ হালনাগাদ করুন" : "নতুন বিভাগ যোগ করুন"}</h3>
+        <h3>{editingId ? "পদবী হালনাগাদ করুন" : "নতুন পদবী যোগ করুন"}</h3>
         <form className="form-grid" onSubmit={handleSubmit}>
           <label className="field">
-            বিভাগের নাম
+            পদবীর নাম
             <input
-              name="name"
-              value={formState.name}
+              name="title"
+              value={formState.title}
               onChange={handleChange}
-              placeholder="উদাহরণ: প্রশাসন"
+              placeholder="উদাহরণ: HR Officer"
             />
           </label>
           <label className="field">
-            বিভাগের কোড
+            বিভাগ
             <input
-              name="code"
-              value={formState.code}
+              name="department"
+              value={formState.department}
               onChange={handleChange}
-              placeholder="ADM-001"
+              placeholder="উদাহরণ: মানব সম্পদ"
             />
           </label>
           <label className="field">
-            ম্যানেজার
+            গ্রেড
             <input
-              name="manager"
-              value={formState.manager}
+              name="grade"
+              value={formState.grade}
               onChange={handleChange}
-              placeholder="ম্যানেজার নাম"
+              placeholder="G-5"
             />
           </label>
           <div className="field">
@@ -216,38 +205,34 @@ export default function Departments() {
           <thead>
             <tr>
               <th>ID</th>
-              <th>নাম</th>
-              <th>কোড</th>
-              <th>ম্যানেজার</th>
+              <th>পদবী</th>
+              <th>বিভাগ</th>
+              <th>গ্রেড</th>
               <th>তৈরির তারিখ</th>
-              <th>অবস্থা</th>
               <th>অ্যাকশন</th>
             </tr>
           </thead>
           <tbody>
-            {departments.map((dept) => (
-              <tr key={dept.id}>
-                <td>{dept.id}</td>
-                <td>{dept.name}</td>
-                <td>{dept.code || "-"}</td>
-                <td>{dept.manager || "-"}</td>
-                <td>{new Date(dept.created_at).toLocaleDateString("bn-BD")}</td>
-                <td>
-                  <span className="badge success">সক্রিয়</span>
-                </td>
+            {designations.map((row) => (
+              <tr key={row.id}>
+                <td>{row.id}</td>
+                <td>{row.title}</td>
+                <td>{row.department || "-"}</td>
+                <td>{row.grade || "-"}</td>
+                <td>{new Date(row.created_at).toLocaleDateString("bn-BD")}</td>
                 <td>
                   <div className="inline-actions">
                     <button
                       className="button secondary"
                       type="button"
-                      onClick={() => handleEdit(dept)}
+                      onClick={() => handleEdit(row)}
                     >
                       সম্পাদনা
                     </button>
                     <button
                       className="button danger"
                       type="button"
-                      onClick={() => handleDelete(dept.id)}
+                      onClick={() => handleDelete(row.id)}
                     >
                       মুছুন
                     </button>
