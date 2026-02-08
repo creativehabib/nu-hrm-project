@@ -4,14 +4,17 @@ import { supabase } from "../supabaseClient";
 export default function Employees() {
   const [employees, setEmployees] = useState([]);
   const [departments, setDepartments] = useState([]);
+  const [designations, setDesignations] = useState([]);
   const [loading, setLoading] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [formState, setFormState] = useState({
     name: "",
     pf_number: "",
     mobile_number: "",
-    designation: "",
-    department_id: "",
+    present_address: "",
+    permanent_address: "",
+    desig_id: "",
+    dept_id: "",
     job_grade: "",
     basic_salary: ""
   });
@@ -27,7 +30,7 @@ export default function Employees() {
       const { data, error } = await supabase
         .from("employees")
         .select(
-          "id, name, pf_number, mobile_number, designation, job_grade, basic_salary, department_id, departments(name)"
+          "id, name, pf_number, mobile_number, present_address, permanent_address, job_grade, basic_salary, dept_id, desig_id, departments(name), designations(name)"
         )
         .order("id", { ascending: false });
 
@@ -37,9 +40,12 @@ export default function Employees() {
           name: row.name,
           pf_number: row.pf_number,
           mobile_number: row.mobile_number,
-          designation: row.designation,
+          present_address: row.present_address,
+          permanent_address: row.permanent_address,
+          designation: row.designations?.name ?? "-",
           dept: row.departments?.name ?? "-",
-          department_id: row.department_id ?? "",
+          dept_id: row.dept_id ?? "",
+          desig_id: row.desig_id ?? "",
           job_grade: row.job_grade,
           basic_salary: row.basic_salary
         }));
@@ -64,8 +70,24 @@ export default function Employees() {
       }
     };
 
+    const loadDesignations = async () => {
+      if (!supabase) {
+        return;
+      }
+
+      const { data, error } = await supabase
+        .from("designations")
+        .select("id, name")
+        .order("name");
+
+      if (!error && data) {
+        setDesignations(data);
+      }
+    };
+
     loadEmployees();
     loadDepartments();
+    loadDesignations();
   }, []);
 
   const resetForm = () => {
@@ -73,8 +95,10 @@ export default function Employees() {
       name: "",
       pf_number: "",
       mobile_number: "",
-      designation: "",
-      department_id: "",
+      present_address: "",
+      permanent_address: "",
+      desig_id: "",
+      dept_id: "",
       job_grade: "",
       basic_salary: ""
     });
@@ -92,8 +116,10 @@ export default function Employees() {
       name: emp.name ?? "",
       pf_number: emp.pf_number ?? "",
       mobile_number: emp.mobile_number ?? "",
-      designation: emp.designation ?? "",
-      department_id: emp.department_id ? String(emp.department_id) : "",
+      present_address: emp.present_address ?? "",
+      permanent_address: emp.permanent_address ?? "",
+      desig_id: emp.desig_id ? String(emp.desig_id) : "",
+      dept_id: emp.dept_id ? String(emp.dept_id) : "",
       job_grade: emp.job_grade ?? "",
       basic_salary: emp.basic_salary ?? ""
     });
@@ -119,11 +145,14 @@ export default function Employees() {
     }
 
     setError("");
-    const departmentIdValue = formState.department_id
-      ? Number(formState.department_id)
+    const departmentIdValue = formState.dept_id
+      ? Number(formState.dept_id)
       : null;
+    const designationIdValue = formState.desig_id ? Number(formState.desig_id) : null;
     const departmentName =
       departments.find((dept) => dept.id === departmentIdValue)?.name ?? "-";
+    const designationName =
+      designations.find((desig) => desig.id === designationIdValue)?.name ?? "-";
 
     if (editingId) {
       const updated = {
@@ -131,8 +160,11 @@ export default function Employees() {
         name: formState.name.trim(),
         pf_number: formState.pf_number.trim(),
         mobile_number: formState.mobile_number.trim(),
-        designation: formState.designation.trim(),
-        department_id: departmentIdValue,
+        present_address: formState.present_address.trim(),
+        permanent_address: formState.permanent_address.trim(),
+        designation: designationName,
+        dept_id: departmentIdValue,
+        desig_id: designationIdValue,
         dept: departmentName,
         job_grade: formState.job_grade.trim(),
         basic_salary: Number(formState.basic_salary) || 0
@@ -149,8 +181,10 @@ export default function Employees() {
             name: updated.name,
             pf_number: updated.pf_number,
             mobile_number: updated.mobile_number || null,
-            designation: updated.designation || null,
-            department_id: updated.department_id,
+            present_address: updated.present_address || null,
+            permanent_address: updated.permanent_address || null,
+            dept_id: updated.dept_id,
+            desig_id: updated.desig_id,
             job_grade: updated.job_grade || null,
             basic_salary: updated.basic_salary || 0
           })
@@ -166,8 +200,11 @@ export default function Employees() {
       name: formState.name.trim(),
       pf_number: formState.pf_number.trim(),
       mobile_number: formState.mobile_number.trim(),
-      designation: formState.designation.trim(),
-      department_id: departmentIdValue,
+      present_address: formState.present_address.trim(),
+      permanent_address: formState.permanent_address.trim(),
+      designation: designationName,
+      dept_id: departmentIdValue,
+      desig_id: designationIdValue,
       dept: departmentName,
       job_grade: formState.job_grade.trim(),
       basic_salary: Number(formState.basic_salary) || 0
@@ -182,13 +219,15 @@ export default function Employees() {
           name: newEmployee.name,
           pf_number: newEmployee.pf_number,
           mobile_number: newEmployee.mobile_number || null,
-          designation: newEmployee.designation || null,
+          present_address: newEmployee.present_address || null,
+          permanent_address: newEmployee.permanent_address || null,
           job_grade: newEmployee.job_grade || null,
           basic_salary: newEmployee.basic_salary || 0,
-          department_id: newEmployee.department_id
+          dept_id: newEmployee.dept_id,
+          desig_id: newEmployee.desig_id
         })
         .select(
-          "id, name, pf_number, mobile_number, designation, job_grade, basic_salary, department_id, departments(name)"
+          "id, name, pf_number, mobile_number, present_address, permanent_address, job_grade, basic_salary, dept_id, desig_id, departments(name), designations(name)"
         )
         .single();
 
@@ -198,9 +237,12 @@ export default function Employees() {
           name: data.name,
           pf_number: data.pf_number,
           mobile_number: data.mobile_number,
-          designation: data.designation,
+          present_address: data.present_address,
+          permanent_address: data.permanent_address,
+          designation: data.designations?.name ?? "-",
           dept: data.departments?.name ?? "-",
-          department_id: data.department_id ?? "",
+          dept_id: data.dept_id ?? "",
+          desig_id: data.desig_id ?? "",
           job_grade: data.job_grade,
           basic_salary: data.basic_salary
         };
@@ -255,7 +297,7 @@ export default function Employees() {
           </label>
           <label className="field">
             বিভাগ
-            <select name="department_id" value={formState.department_id} onChange={handleChange}>
+            <select name="dept_id" value={formState.dept_id} onChange={handleChange}>
               <option value="">বিভাগ নির্বাচন করুন</option>
               {departments.map((dept) => (
                 <option key={dept.id} value={dept.id}>
@@ -266,11 +308,31 @@ export default function Employees() {
           </label>
           <label className="field">
             পদবী
+            <select name="desig_id" value={formState.desig_id} onChange={handleChange}>
+              <option value="">পদবী নির্বাচন করুন</option>
+              {designations.map((desig) => (
+                <option key={desig.id} value={desig.id}>
+                  {desig.name}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="field">
+            বর্তমান ঠিকানা
             <input
-              name="designation"
-              value={formState.designation}
+              name="present_address"
+              value={formState.present_address}
               onChange={handleChange}
-              placeholder="Designation"
+              placeholder="বর্তমান ঠিকানা"
+            />
+          </label>
+          <label className="field">
+            স্থায়ী ঠিকানা
+            <input
+              name="permanent_address"
+              value={formState.permanent_address}
+              onChange={handleChange}
+              placeholder="স্থায়ী ঠিকানা"
             />
           </label>
           <label className="field">
@@ -320,13 +382,15 @@ export default function Employees() {
               <th>গ্রেড</th>
               <th>বেসিক</th>
               <th>মোবাইল</th>
+              <th>বর্তমান ঠিকানা</th>
+              <th>স্থায়ী ঠিকানা</th>
               <th>অ্যাকশন</th>
             </tr>
           </thead>
           <tbody>
             {employees.length === 0 ? (
               <tr>
-                <td colSpan={8}>কোন কর্মী পাওয়া যায়নি।</td>
+                <td colSpan={10}>কোন কর্মী পাওয়া যায়নি।</td>
               </tr>
             ) : (
               employees.map((emp) => (
@@ -338,6 +402,8 @@ export default function Employees() {
                   <td>{emp.job_grade}</td>
                   <td>{Number(emp.basic_salary || 0).toLocaleString("bn-BD")}</td>
                   <td>{emp.mobile_number || "-"}</td>
+                  <td>{emp.present_address || "-"}</td>
+                  <td>{emp.permanent_address || "-"}</td>
                   <td>
                     <div className="inline-actions">
                       <button
