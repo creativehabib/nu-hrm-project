@@ -371,33 +371,37 @@ export default function Employees() {
                 <h3>{viewEmployee.name}</h3>
                 <p>PF নম্বর: {viewEmployee.pf_number}</p>
               </div>
-              <div className="info-grid">
-                <div>
-                  <strong>বিভাগ:</strong> {viewEmployee.dept || "-"}
-                </div>
-                <div>
-                  <strong>পদবী:</strong> {viewEmployee.designation || "-"}
-                </div>
-                <div>
-                  <strong>মোবাইল:</strong> {viewEmployee.mobile_number || "-"}
-                </div>
-                <div>
-                  <strong>বেসিক বেতন:</strong> {viewEmployee.basic_salary || 0}
-                </div>
-                <div>
-                  <strong>রক্তের গ্রুপ:</strong> {viewEmployee.blood_group || "-"}
-                </div>
-                <div>
-                  <strong>হোম ডিস্ট্রিক্ট:</strong> {viewEmployee.home_district || "-"}
-                </div>
-                <div>
-                  <strong>বর্তমান ঠিকানা:</strong>{" "}
-                  {viewEmployee.present_address || "-"}
-                </div>
-                <div>
-                  <strong>স্থায়ী ঠিকানা:</strong>{" "}
-                  {viewEmployee.permanent_address || "-"}
-                </div>
+              <div className="print-section">
+                <table className="table print-table">
+                  <tbody>
+                    <tr>
+                      <th>বিভাগ</th>
+                      <td>{viewEmployee.dept || "-"}</td>
+                      <th>পদবী</th>
+                      <td>{viewEmployee.designation || "-"}</td>
+                    </tr>
+                    <tr>
+                      <th>মোবাইল</th>
+                      <td>{viewEmployee.mobile_number || "-"}</td>
+                      <th>বেসিক বেতন</th>
+                      <td>{viewEmployee.basic_salary || 0}</td>
+                    </tr>
+                    <tr>
+                      <th>রক্তের গ্রুপ</th>
+                      <td>{viewEmployee.blood_group || "-"}</td>
+                      <th>হোম ডিস্ট্রিক্ট</th>
+                      <td>{viewEmployee.home_district || "-"}</td>
+                    </tr>
+                    <tr>
+                      <th>বর্তমান ঠিকানা</th>
+                      <td colSpan={3}>{viewEmployee.present_address || "-"}</td>
+                    </tr>
+                    <tr>
+                      <th>স্থায়ী ঠিকানা</th>
+                      <td colSpan={3}>{viewEmployee.permanent_address || "-"}</td>
+                    </tr>
+                  </tbody>
+                </table>
               </div>
               <div className="print-section">
                 <strong>About:</strong>

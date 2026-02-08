@@ -274,6 +274,31 @@ body {
   margin-top: 16px;
 }
 
+.print-table {
+  width: 100%;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.print-table th {
+  width: 18%;
+  background: #f8fafc;
+  font-weight: 600;
+}
+
+.print-table td,
+.print-table th {
+  padding: 12px 14px;
+  border-bottom: 1px solid #e5e7eb;
+  vertical-align: top;
+}
+
+.print-table tr:last-child td,
+.print-table tr:last-child th {
+  border-bottom: none;
+}
+
 @media print {
   body * {
     visibility: hidden;
