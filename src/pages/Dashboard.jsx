@@ -1,44 +1,111 @@
-import { useMemo } from "react";
-
-const metrics = [
-  { title: "মোট কর্মী", value: "128" },
-  { title: "আজ উপস্থিত", value: "118" },
-  { title: "আজ অনুপস্থিত", value: "10" },
-  { title: "চলমান ছুটি", value: "6" }
-];
-
-const recentActivities = [
-  {
-    title: "নতুন কর্মী যোগ হয়েছে",
-    detail: "আলমগীর কবির - আইটি বিভাগ",
-    time: "২০ মিনিট আগে"
-  },
-  {
-    title: "বেতন প্রক্রিয়াকরণ",
-    detail: "সেপ্টেম্বর মাসের বেতন অনুমোদিত",
-    time: "১ ঘণ্টা আগে"
-  },
-  {
-    title: "ছুটি আবেদন",
-    detail: "মাহমুদা (হিসাব বিভাগ) - ৩ দিনের ছুটি",
-    time: "আজ"
-  }
-];
-
-const leaveSummary = [
-  { type: "ক্যাজুয়াল", used: 4, total: 10 },
-  { type: "সিক", used: 2, total: 7 },
-  { type: "আনপেইড", used: 1, total: 5 }
-];
+import { useEffect, useMemo, useState } from "react";
+import { supabase } from "../supabaseClient";
 
 export default function Dashboard() {
+  const [metrics, setMetrics] = useState([
+    { title: "মোট কর্মী", value: "0" },
+    { title: "আজ উপস্থিত", value: "0" },
+    { title: "আজ অনুপস্থিত", value: "0" },
+    { title: "চলমান ছুটি", value: "0" }
+  ]);
+  const [leaveSummary, setLeaveSummary] = useState([]);
+  const [recentActivities, setRecentActivities] = useState([]);
+
+  useEffect(() => {
+    const loadMetrics = async () => {
+      if (!supabase) {
+        return;
+      }
+
+      const today = new Date().toISOString().slice(0, 10);
+
+      const [employeesCount, presentCount, absentCount, leaveCount] = await Promise.all([
+        supabase.from("employees").select("id", { count: "exact", head: true }),
+        supabase
+          .from("attendance")
+          .select("id", { count: "exact", head: true })
+          .eq("date", today)
+          .eq("status", "Present"),
+        supabase
+          .from("attendance")
+          .select("id", { count: "exact", head: true })
+          .eq("date", today)
+          .eq("status", "Absent"),
+        supabase
+          .from("leave_requests")
+          .select("id", { count: "exact", head: true })
+          .eq("status", "Approved")
+          .lte("start_date", today)
+          .or(`end_date.is.null,end_date.gte.${today}`)
+      ]);
+
+      setMetrics([
+        { title: "মোট কর্মী", value: String(employeesCount.count ?? 0) },
+        { title: "আজ উপস্থিত", value: String(presentCount.count ?? 0) },
+        { title: "আজ অনুপস্থিত", value: String(absentCount.count ?? 0) },
+        { title: "চলমান ছুটি", value: String(leaveCount.count ?? 0) }
+      ]);
+    };
+
+    const loadLeaveSummary = async () => {
+      if (!supabase) {
+        return;
+      }
+
+      const { data } = await supabase
+        .from("leave_requests")
+        .select("type, status");
+
+      if (data) {
+        const summary = data.reduce((acc, item) => {
+          const type = item.type || "অন্যান্য";
+          if (!acc[type]) {
+            acc[type] = { type, used: 0, total: 0 };
+          }
+          if (item.status === "Approved") {
+            acc[type].used += 1;
+          }
+          acc[type].total += 1;
+          return acc;
+        }, {});
+
+        setLeaveSummary(Object.values(summary));
+      }
+    };
+
+    const loadRecentActivities = async () => {
+      if (!supabase) {
+        return;
+      }
+
+      const { data } = await supabase
+        .from("employees")
+        .select("name, department_id, departments(name), created_at")
+        .order("created_at", { ascending: false })
+        .limit(5);
+
+      if (data) {
+        const activities = data.map((row) => ({
+          title: "নতুন কর্মী যোগ হয়েছে",
+          detail: `${row.name}${row.departments?.name ? ` - ${row.departments.name}` : ""}`,
+          time: row.created_at ? new Date(row.created_at).toLocaleDateString("bn-BD") : "-"
+        }));
+        setRecentActivities(activities);
+      }
+    };
+
+    loadMetrics();
+    loadLeaveSummary();
+    loadRecentActivities();
+  }, []);
+
   const leaveStats = useMemo(
     () =>
       leaveSummary.map((item) => ({
         ...item,
-        remaining: item.total - item.used
+        remaining: Math.max(0, item.total - item.used)
       })),
-    []
+    [leaveSummary]
   );
 
   return (
@@ -62,29 +129,37 @@ export default function Dashboard() {
 
       <section className="section card">
         <h3>ছুটি ব্যালেন্স সারাংশ</h3>
-        <div className="card-grid">
-          {leaveStats.map((item) => (
-            <div key={item.type}>
-              <p>{item.type}</p>
-              <p>
-                ব্যবহৃত {item.used}/{item.total} • বাকি {item.remaining}
-              </p>
-            </div>
-          ))}
-        </div>
+        {leaveStats.length === 0 ? (
+          <p>কোন ছুটির সারাংশ পাওয়া যায়নি।</p>
+        ) : (
+          <div className="card-grid">
+            {leaveStats.map((item) => (
+              <div key={item.type}>
+                <p>{item.type}</p>
+                <p>
+                  ব্যবহৃত {item.used}/{item.total} • বাকি {item.remaining}
+                </p>
+              </div>
+            ))}
+          </div>
+        )}
       </section>
 
       <section className="section card">
         <h3>সাম্প্রতিক কার্যক্রম</h3>
-        <ul>
-          {recentActivities.map((activity) => (
-            <li key={activity.title} style={{ marginBottom: "10px" }}>
-              <strong>{activity.title}</strong>
-              <div>{activity.detail}</div>
-              <small>{activity.time}</small>
-            </li>
-          ))}
-        </ul>
+        {recentActivities.length === 0 ? (
+          <p>কোন কার্যক্রম পাওয়া যায়নি।</p>
+        ) : (
+          <ul>
+            {recentActivities.map((activity) => (
+              <li key={`${activity.title}-${activity.detail}`} style={{ marginBottom: "10px" }}>
+                <strong>{activity.title}</strong>
+                <div>{activity.detail}</div>
+                <small>{activity.time}</small>
+              </li>
+            ))}
+          </ul>
+        )}
       </section>
     </div>
   );

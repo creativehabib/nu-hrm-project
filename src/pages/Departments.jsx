@@ -1,32 +1,8 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../supabaseClient";
 
-const fallbackDepartments = [
-  {
-    id: 1,
-    name: "মানব সম্পদ",
-    code: "HR-001",
-    manager: "সাদিয়া রহমান",
-    created_at: "2024-07-01"
-  },
-  {
-    id: 2,
-    name: "হিসাব",
-    code: "ACC-002",
-    manager: "মাসুদ করিম",
-    created_at: "2024-07-03"
-  },
-  {
-    id: 3,
-    name: "আইটি",
-    code: "IT-003",
-    manager: "আরিফুল ইসলাম",
-    created_at: "2024-07-05"
-  }
-];
-
 export default function Departments() {
-  const [departments, setDepartments] = useState(fallbackDepartments);
+  const [departments, setDepartments] = useState([]);
   const [loading, setLoading] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [formState, setFormState] = useState({
@@ -225,36 +201,42 @@ export default function Departments() {
             </tr>
           </thead>
           <tbody>
-            {departments.map((dept) => (
-              <tr key={dept.id}>
-                <td>{dept.id}</td>
-                <td>{dept.name}</td>
-                <td>{dept.code || "-"}</td>
-                <td>{dept.manager || "-"}</td>
-                <td>{new Date(dept.created_at).toLocaleDateString("bn-BD")}</td>
-                <td>
-                  <span className="badge success">সক্রিয়</span>
-                </td>
-                <td>
-                  <div className="inline-actions">
-                    <button
-                      className="button secondary"
-                      type="button"
-                      onClick={() => handleEdit(dept)}
-                    >
-                      সম্পাদনা
-                    </button>
-                    <button
-                      className="button danger"
-                      type="button"
-                      onClick={() => handleDelete(dept.id)}
-                    >
-                      মুছুন
-                    </button>
-                  </div>
-                </td>
+            {departments.length === 0 ? (
+              <tr>
+                <td colSpan={7}>কোন বিভাগ পাওয়া যায়নি।</td>
               </tr>
-            ))}
+            ) : (
+              departments.map((dept) => (
+                <tr key={dept.id}>
+                  <td>{dept.id}</td>
+                  <td>{dept.name}</td>
+                  <td>{dept.code || "-"}</td>
+                  <td>{dept.manager || "-"}</td>
+                  <td>{new Date(dept.created_at).toLocaleDateString("bn-BD")}</td>
+                  <td>
+                    <span className="badge success">সক্রিয়</span>
+                  </td>
+                  <td>
+                    <div className="inline-actions">
+                      <button
+                        className="button secondary"
+                        type="button"
+                        onClick={() => handleEdit(dept)}
+                      >
+                        সম্পাদনা
+                      </button>
+                      <button
+                        className="button danger"
+                        type="button"
+                        onClick={() => handleDelete(dept.id)}
+                      >
+                        মুছুন
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))
+            )}
           </tbody>
         </table>
         {loading && <p>লোড হচ্ছে...</p>}

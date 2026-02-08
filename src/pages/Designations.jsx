@@ -1,25 +1,8 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../supabaseClient";
 
-const fallbackDesignations = [
-  {
-    id: 1,
-    title: "HR Officer",
-    department: "মানব সম্পদ",
-    grade: "G-5",
-    created_at: "2024-07-04"
-  },
-  {
-    id: 2,
-    title: "Senior Accountant",
-    department: "হিসাব",
-    grade: "G-6",
-    created_at: "2024-07-06"
-  }
-];
-
 export default function Designations() {
-  const [designations, setDesignations] = useState(fallbackDesignations);
+  const [designations, setDesignations] = useState([]);
   const [loading, setLoading] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [formState, setFormState] = useState({
@@ -213,33 +196,39 @@ export default function Designations() {
             </tr>
           </thead>
           <tbody>
-            {designations.map((row) => (
-              <tr key={row.id}>
-                <td>{row.id}</td>
-                <td>{row.title}</td>
-                <td>{row.department || "-"}</td>
-                <td>{row.grade || "-"}</td>
-                <td>{new Date(row.created_at).toLocaleDateString("bn-BD")}</td>
-                <td>
-                  <div className="inline-actions">
-                    <button
-                      className="button secondary"
-                      type="button"
-                      onClick={() => handleEdit(row)}
-                    >
-                      সম্পাদনা
-                    </button>
-                    <button
-                      className="button danger"
-                      type="button"
-                      onClick={() => handleDelete(row.id)}
-                    >
-                      মুছুন
-                    </button>
-                  </div>
-                </td>
+            {designations.length === 0 ? (
+              <tr>
+                <td colSpan={6}>কোন পদবী পাওয়া যায়নি।</td>
               </tr>
-            ))}
+            ) : (
+              designations.map((row) => (
+                <tr key={row.id}>
+                  <td>{row.id}</td>
+                  <td>{row.title}</td>
+                  <td>{row.department || "-"}</td>
+                  <td>{row.grade || "-"}</td>
+                  <td>{new Date(row.created_at).toLocaleDateString("bn-BD")}</td>
+                  <td>
+                    <div className="inline-actions">
+                      <button
+                        className="button secondary"
+                        type="button"
+                        onClick={() => handleEdit(row)}
+                      >
+                        সম্পাদনা
+                      </button>
+                      <button
+                        className="button danger"
+                        type="button"
+                        onClick={() => handleDelete(row.id)}
+                      >
+                        মুছুন
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))
+            )}
           </tbody>
         </table>
         {loading && <p>লোড হচ্ছে...</p>}
