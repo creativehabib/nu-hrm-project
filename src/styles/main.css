@@ -108,6 +108,18 @@ body {
   gap: 16px;
 }
 
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px 16px;
+  font-size: 0.95rem;
+}
+
+.info-grid strong {
+  display: inline-block;
+  min-width: 120px;
+}
+
 .field {
   display: flex;
   flex-direction: column;
