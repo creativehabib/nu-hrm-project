@@ -6,8 +6,7 @@ export default function Designations() {
   const [loading, setLoading] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [formState, setFormState] = useState({
-    title: "",
-    department: "",
+    name: "",
     grade: ""
   });
   const [error, setError] = useState("");
@@ -21,7 +20,7 @@ export default function Designations() {
       setLoading(true);
       const { data, error } = await supabase
         .from("designations")
-        .select("id, title, department, grade, created_at")
+        .select("id, name, grade, created_at")
         .order("created_at", { ascending: false });
 
       if (!error && data) {
@@ -35,7 +34,7 @@ export default function Designations() {
   }, []);
 
   const resetForm = () => {
-    setFormState({ title: "", department: "", grade: "" });
+    setFormState({ name: "", grade: "" });
     setEditingId(null);
     setError("");
   };
@@ -47,8 +46,7 @@ export default function Designations() {
 
   const handleEdit = (designation) => {
     setFormState({
-      title: designation.title ?? "",
-      department: designation.department ?? "",
+      name: designation.name ?? "",
       grade: designation.grade ?? ""
     });
     setEditingId(designation.id);
@@ -67,7 +65,7 @@ export default function Designations() {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-    if (!formState.title.trim()) {
+    if (!formState.name.trim()) {
       setError("পদবীর নাম লিখুন।");
       return;
     }
@@ -84,8 +82,7 @@ export default function Designations() {
         await supabase
           .from("designations")
           .update({
-            title: updated.title,
-            department: updated.department || null,
+            name: updated.name,
             grade: updated.grade || null
           })
           .eq("id", editingId);
@@ -97,8 +94,7 @@ export default function Designations() {
 
     const newDesignation = {
       id: Date.now(),
-      title: formState.title.trim(),
-      department: formState.department.trim(),
+      name: formState.name.trim(),
       grade: formState.grade.trim(),
       created_at: new Date().toISOString()
     };
@@ -109,11 +105,10 @@ export default function Designations() {
       const { data } = await supabase
         .from("designations")
         .insert({
-          title: newDesignation.title,
-          department: newDesignation.department || null,
+          name: newDesignation.name,
           grade: newDesignation.grade || null
         })
-        .select("id, title, department, grade, created_at")
+        .select("id, name, grade, created_at")
         .single();
 
       if (data) {
@@ -142,19 +137,10 @@ export default function Designations() {
           <label className="field">
             পদবীর নাম
             <input
-              name="title"
-              value={formState.title}
+              name="name"
+              value={formState.name}
               onChange={handleChange}
               placeholder="উদাহরণ: HR Officer"
-            />
-          </label>
-          <label className="field">
-            বিভাগ
-            <input
-              name="department"
-              value={formState.department}
-              onChange={handleChange}
-              placeholder="উদাহরণ: মানব সম্পদ"
             />
           </label>
           <label className="field">
@@ -189,7 +175,6 @@ export default function Designations() {
             <tr>
               <th>ID</th>
               <th>পদবী</th>
-              <th>বিভাগ</th>
               <th>গ্রেড</th>
               <th>তৈরির তারিখ</th>
               <th>অ্যাকশন</th>
@@ -198,14 +183,13 @@ export default function Designations() {
           <tbody>
             {designations.length === 0 ? (
               <tr>
-                <td colSpan={6}>কোন পদবী পাওয়া যায়নি।</td>
+                <td colSpan={5}>কোন পদবী পাওয়া যায়নি।</td>
               </tr>
             ) : (
               designations.map((row) => (
                 <tr key={row.id}>
                   <td>{row.id}</td>
-                  <td>{row.title}</td>
-                  <td>{row.department || "-"}</td>
+                  <td>{row.name}</td>
                   <td>{row.grade || "-"}</td>
                   <td>{new Date(row.created_at).toLocaleDateString("bn-BD")}</td>
                   <td>

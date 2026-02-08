@@ -6,9 +6,7 @@ export default function Departments() {
   const [loading, setLoading] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [formState, setFormState] = useState({
-    name: "",
-    code: "",
-    manager: ""
+    name: ""
   });
   const [error, setError] = useState("");
 
@@ -21,7 +19,7 @@ export default function Departments() {
       setLoading(true);
       const { data, error } = await supabase
         .from("departments")
-        .select("id, name, code, manager, created_at")
+        .select("id, name, created_at")
         .order("created_at", { ascending: false });
 
       if (!error && data) {
@@ -35,7 +33,7 @@ export default function Departments() {
   }, []);
 
   const resetForm = () => {
-    setFormState({ name: "", code: "", manager: "" });
+    setFormState({ name: "" });
     setEditingId(null);
     setError("");
   };
@@ -47,9 +45,7 @@ export default function Departments() {
 
   const handleEdit = (dept) => {
     setFormState({
-      name: dept.name ?? "",
-      code: dept.code ?? "",
-      manager: dept.manager ?? ""
+      name: dept.name ?? ""
     });
     setEditingId(dept.id);
     setError("");
@@ -88,9 +84,7 @@ export default function Departments() {
         await supabase
           .from("departments")
           .update({
-            name: updated.name,
-            code: updated.code || null,
-            manager: updated.manager || null
+            name: updated.name
           })
           .eq("id", editingId);
       }
@@ -102,8 +96,6 @@ export default function Departments() {
     const newDepartment = {
       id: Date.now(),
       name: formState.name.trim(),
-      code: formState.code.trim(),
-      manager: formState.manager.trim(),
       created_at: new Date().toISOString()
     };
 
@@ -113,11 +105,9 @@ export default function Departments() {
       const { data } = await supabase
         .from("departments")
         .insert({
-          name: newDepartment.name,
-          code: newDepartment.code || null,
-          manager: newDepartment.manager || null
+          name: newDepartment.name
         })
-        .select("id, name, code, manager, created_at")
+        .select("id, name, created_at")
         .single();
 
       if (data) {
@@ -152,24 +142,6 @@ export default function Departments() {
               placeholder="উদাহরণ: প্রশাসন"
             />
           </label>
-          <label className="field">
-            বিভাগের কোড
-            <input
-              name="code"
-              value={formState.code}
-              onChange={handleChange}
-              placeholder="ADM-001"
-            />
-          </label>
-          <label className="field">
-            ম্যানেজার
-            <input
-              name="manager"
-              value={formState.manager}
-              onChange={handleChange}
-              placeholder="ম্যানেজার নাম"
-            />
-          </label>
           <div className="field">
             <span>অ্যাকশন</span>
             <div className="inline-actions">
@@ -193,8 +165,6 @@ export default function Departments() {
             <tr>
               <th>ID</th>
               <th>নাম</th>
-              <th>কোড</th>
-              <th>ম্যানেজার</th>
               <th>তৈরির তারিখ</th>
               <th>অবস্থা</th>
               <th>অ্যাকশন</th>
@@ -203,15 +173,13 @@ export default function Departments() {
           <tbody>
             {departments.length === 0 ? (
               <tr>
-                <td colSpan={7}>কোন বিভাগ পাওয়া যায়নি।</td>
+                <td colSpan={5}>কোন বিভাগ পাওয়া যায়নি।</td>
               </tr>
             ) : (
               departments.map((dept) => (
                 <tr key={dept.id}>
                   <td>{dept.id}</td>
                   <td>{dept.name}</td>
-                  <td>{dept.code || "-"}</td>
-                  <td>{dept.manager || "-"}</td>
                   <td>{new Date(dept.created_at).toLocaleDateString("bn-BD")}</td>
                   <td>
                     <span className="badge success">সক্রিয়</span>

@@ -13,9 +13,11 @@ export default function Employees() {
     mobile_number: "",
     present_address: "",
     permanent_address: "",
+    blood_group: "",
+    home_district: "",
+    about: "",
     desig_id: "",
     dept_id: "",
-    job_grade: "",
     basic_salary: ""
   });
   const [error, setError] = useState("");
@@ -30,7 +32,7 @@ export default function Employees() {
       const { data, error } = await supabase
         .from("employees")
         .select(
-          "id, name, pf_number, mobile_number, present_address, permanent_address, job_grade, basic_salary, dept_id, desig_id, departments(name), designations(name)"
+          "id, name, pf_number, mobile_number, present_address, permanent_address, blood_group, home_district, about, basic_salary, dept_id, desig_id, departments(name), designations(name)"
         )
         .order("id", { ascending: false });
 
@@ -42,11 +44,13 @@ export default function Employees() {
           mobile_number: row.mobile_number,
           present_address: row.present_address,
           permanent_address: row.permanent_address,
+          blood_group: row.blood_group,
+          home_district: row.home_district,
+          about: row.about,
           designation: row.designations?.name ?? "-",
           dept: row.departments?.name ?? "-",
           dept_id: row.dept_id ?? "",
           desig_id: row.desig_id ?? "",
-          job_grade: row.job_grade,
           basic_salary: row.basic_salary
         }));
         setEmployees(normalized);
@@ -97,9 +101,11 @@ export default function Employees() {
       mobile_number: "",
       present_address: "",
       permanent_address: "",
+      blood_group: "",
+      home_district: "",
+      about: "",
       desig_id: "",
       dept_id: "",
-      job_grade: "",
       basic_salary: ""
     });
     setEditingId(null);
@@ -118,9 +124,11 @@ export default function Employees() {
       mobile_number: emp.mobile_number ?? "",
       present_address: emp.present_address ?? "",
       permanent_address: emp.permanent_address ?? "",
+      blood_group: emp.blood_group ?? "",
+      home_district: emp.home_district ?? "",
+      about: emp.about ?? "",
       desig_id: emp.desig_id ? String(emp.desig_id) : "",
       dept_id: emp.dept_id ? String(emp.dept_id) : "",
-      job_grade: emp.job_grade ?? "",
       basic_salary: emp.basic_salary ?? ""
     });
     setEditingId(emp.id);
@@ -162,11 +170,13 @@ export default function Employees() {
         mobile_number: formState.mobile_number.trim(),
         present_address: formState.present_address.trim(),
         permanent_address: formState.permanent_address.trim(),
+        blood_group: formState.blood_group.trim(),
+        home_district: formState.home_district.trim(),
+        about: formState.about.trim(),
         designation: designationName,
         dept_id: departmentIdValue,
         desig_id: designationIdValue,
         dept: departmentName,
-        job_grade: formState.job_grade.trim(),
         basic_salary: Number(formState.basic_salary) || 0
       };
 
@@ -183,9 +193,11 @@ export default function Employees() {
             mobile_number: updated.mobile_number || null,
             present_address: updated.present_address || null,
             permanent_address: updated.permanent_address || null,
+            blood_group: updated.blood_group || null,
+            home_district: updated.home_district || null,
+            about: updated.about || null,
             dept_id: updated.dept_id,
             desig_id: updated.desig_id,
-            job_grade: updated.job_grade || null,
             basic_salary: updated.basic_salary || 0
           })
           .eq("id", editingId);
@@ -202,11 +214,13 @@ export default function Employees() {
       mobile_number: formState.mobile_number.trim(),
       present_address: formState.present_address.trim(),
       permanent_address: formState.permanent_address.trim(),
+      blood_group: formState.blood_group.trim(),
+      home_district: formState.home_district.trim(),
+      about: formState.about.trim(),
       designation: designationName,
       dept_id: departmentIdValue,
       desig_id: designationIdValue,
       dept: departmentName,
-      job_grade: formState.job_grade.trim(),
       basic_salary: Number(formState.basic_salary) || 0
     };
 
@@ -221,13 +235,15 @@ export default function Employees() {
           mobile_number: newEmployee.mobile_number || null,
           present_address: newEmployee.present_address || null,
           permanent_address: newEmployee.permanent_address || null,
-          job_grade: newEmployee.job_grade || null,
+          blood_group: newEmployee.blood_group || null,
+          home_district: newEmployee.home_district || null,
+          about: newEmployee.about || null,
           basic_salary: newEmployee.basic_salary || 0,
           dept_id: newEmployee.dept_id,
           desig_id: newEmployee.desig_id
         })
         .select(
-          "id, name, pf_number, mobile_number, present_address, permanent_address, job_grade, basic_salary, dept_id, desig_id, departments(name), designations(name)"
+          "id, name, pf_number, mobile_number, present_address, permanent_address, blood_group, home_district, about, basic_salary, dept_id, desig_id, departments(name), designations(name)"
         )
         .single();
 
@@ -239,11 +255,13 @@ export default function Employees() {
           mobile_number: data.mobile_number,
           present_address: data.present_address,
           permanent_address: data.permanent_address,
+          blood_group: data.blood_group,
+          home_district: data.home_district,
+          about: data.about,
           designation: data.designations?.name ?? "-",
           dept: data.departments?.name ?? "-",
           dept_id: data.dept_id ?? "",
           desig_id: data.desig_id ?? "",
-          job_grade: data.job_grade,
           basic_salary: data.basic_salary
         };
         setEmployees((prev) => [normalized, ...prev.filter((emp) => emp.id !== newEmployee.id)]);
@@ -296,6 +314,15 @@ export default function Employees() {
             />
           </label>
           <label className="field">
+            রক্তের গ্রুপ
+            <input
+              name="blood_group"
+              value={formState.blood_group}
+              onChange={handleChange}
+              placeholder="A+"
+            />
+          </label>
+          <label className="field">
             বিভাগ
             <select name="dept_id" value={formState.dept_id} onChange={handleChange}>
               <option value="">বিভাগ নির্বাচন করুন</option>
@@ -336,12 +363,12 @@ export default function Employees() {
             />
           </label>
           <label className="field">
-            গ্রেড
+            হোম ডিস্ট্রিক্ট
             <input
-              name="job_grade"
-              value={formState.job_grade}
+              name="home_district"
+              value={formState.home_district}
               onChange={handleChange}
-              placeholder="G-5"
+              placeholder="হোম ডিস্ট্রিক্ট"
             />
           </label>
           <label className="field">
@@ -352,6 +379,16 @@ export default function Employees() {
               value={formState.basic_salary}
               onChange={handleChange}
               placeholder="35000"
+            />
+          </label>
+          <label className="field field-full">
+            About
+            <textarea
+              name="about"
+              value={formState.about}
+              onChange={handleChange}
+              placeholder="কর্মীর সংক্ষিপ্ত তথ্য"
+              rows={3}
             />
           </label>
           <div className="field">
@@ -379,9 +416,11 @@ export default function Employees() {
               <th>PF</th>
               <th>বিভাগ</th>
               <th>পদবী</th>
-              <th>গ্রেড</th>
+              <th>ব্লাড গ্রুপ</th>
               <th>বেসিক</th>
               <th>মোবাইল</th>
+              <th>হোম ডিস্ট্রিক্ট</th>
+              <th>About</th>
               <th>বর্তমান ঠিকানা</th>
               <th>স্থায়ী ঠিকানা</th>
               <th>অ্যাকশন</th>
@@ -390,7 +429,7 @@ export default function Employees() {
           <tbody>
             {employees.length === 0 ? (
               <tr>
-                <td colSpan={10}>কোন কর্মী পাওয়া যায়নি।</td>
+                <td colSpan={12}>কোন কর্মী পাওয়া যায়নি।</td>
               </tr>
             ) : (
               employees.map((emp) => (
@@ -399,9 +438,11 @@ export default function Employees() {
                   <td>{emp.pf_number}</td>
                   <td>{emp.dept}</td>
                   <td>{emp.designation}</td>
-                  <td>{emp.job_grade}</td>
+                  <td>{emp.blood_group || "-"}</td>
                   <td>{Number(emp.basic_salary || 0).toLocaleString("bn-BD")}</td>
                   <td>{emp.mobile_number || "-"}</td>
+                  <td>{emp.home_district || "-"}</td>
+                  <td>{emp.about || "-"}</td>
                   <td>{emp.present_address || "-"}</td>
                   <td>{emp.permanent_address || "-"}</td>
                   <td>
