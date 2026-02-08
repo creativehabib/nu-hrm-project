@@ -465,6 +465,12 @@ export default function Employees() {
 
       <section className="section">
         <div className="table-toolbar">
+          <div className="employee-count" aria-live="polite">
+            <span>মোট কর্মী: {employees.length}</span>
+            {normalizedSearch && (
+              <span>মিলে: {filteredEmployees.length}</span>
+            )}
+          </div>
           <label className="field">
             <span>লাইভ সার্চ</span>
             <input
