@@ -353,24 +353,6 @@ export default function Employees() {
             </select>
           </label>
           <label className="field">
-            বর্তমান ঠিকানা
-            <input
-              name="present_address"
-              value={formState.present_address}
-              onChange={handleChange}
-              placeholder="বর্তমান ঠিকানা"
-            />
-          </label>
-          <label className="field">
-            স্থায়ী ঠিকানা
-            <input
-              name="permanent_address"
-              value={formState.permanent_address}
-              onChange={handleChange}
-              placeholder="স্থায়ী ঠিকানা"
-            />
-          </label>
-          <label className="field">
             হোম ডিস্ট্রিক্ট
             <input
               name="home_district"
@@ -397,6 +379,26 @@ export default function Employees() {
               onChange={handleChange}
               placeholder="কর্মীর সংক্ষিপ্ত তথ্য"
               rows={3}
+            />
+          </label>
+          <label className="field">
+            বর্তমান ঠিকানা
+            <textarea
+              name="present_address"
+              value={formState.present_address}
+              onChange={handleChange}
+              placeholder="বর্তমান ঠিকানা"
+              rows={2}
+            />
+          </label>
+          <label className="field">
+            স্থায়ী ঠিকানা
+            <textarea
+              name="permanent_address"
+              value={formState.permanent_address}
+              onChange={handleChange}
+              placeholder="স্থায়ী ঠিকানা"
+              rows={2}
             />
           </label>
           <div className="field">
