@@ -7,6 +7,7 @@ export default function Employees() {
   const [designations, setDesignations] = useState([]);
   const [loading, setLoading] = useState(false);
   const [editingId, setEditingId] = useState(null);
+  const [selectedEmployee, setSelectedEmployee] = useState(null);
   const [formState, setFormState] = useState({
     name: "",
     pf_number: "",
@@ -135,6 +136,10 @@ export default function Employees() {
     setError("");
   };
 
+  const handleView = (emp) => {
+    setSelectedEmployee(emp);
+  };
+
   const handleDelete = async (empId) => {
     if (!supabase) {
       setError("Supabase কনফিগার হয়নি।");
@@ -153,6 +158,7 @@ export default function Employees() {
 
     setError("");
     setEmployees((prev) => prev.filter((emp) => emp.id !== empId));
+    setSelectedEmployee((prev) => (prev?.id === empId ? null : prev));
   };
 
   const handleSubmit = async (event) => {
@@ -410,6 +416,57 @@ export default function Employees() {
         {error && <p className="form-error">{error}</p>}
       </section>
 
+      {selectedEmployee && (
+        <section className="section card">
+          <header className="page-header">
+            <div>
+              <h3>কর্মী তথ্য</h3>
+              <p>{selectedEmployee.name}</p>
+            </div>
+            <button
+              className="button secondary"
+              type="button"
+              onClick={() => setSelectedEmployee(null)}
+            >
+              বন্ধ করুন
+            </button>
+          </header>
+          <div className="info-grid">
+            <div>
+              <strong>PF নম্বর:</strong> {selectedEmployee.pf_number || "-"}
+            </div>
+            <div>
+              <strong>বিভাগ:</strong> {selectedEmployee.dept || "-"}
+            </div>
+            <div>
+              <strong>পদবী:</strong> {selectedEmployee.designation || "-"}
+            </div>
+            <div>
+              <strong>ব্লাড গ্রুপ:</strong> {selectedEmployee.blood_group || "-"}
+            </div>
+            <div>
+              <strong>মোবাইল:</strong> {selectedEmployee.mobile_number || "-"}
+            </div>
+            <div>
+              <strong>বেসিক বেতন:</strong>{" "}
+              {Number(selectedEmployee.basic_salary || 0).toLocaleString("bn-BD")}
+            </div>
+            <div>
+              <strong>হোম ডিস্ট্রিক্ট:</strong> {selectedEmployee.home_district || "-"}
+            </div>
+            <div>
+              <strong>বর্তমান ঠিকানা:</strong> {selectedEmployee.present_address || "-"}
+            </div>
+            <div>
+              <strong>স্থায়ী ঠিকানা:</strong> {selectedEmployee.permanent_address || "-"}
+            </div>
+            <div>
+              <strong>About:</strong> {selectedEmployee.about || "-"}
+            </div>
+          </div>
+        </section>
+      )}
+
       <section className="section">
         <table className="table">
           <thead>
@@ -419,19 +476,15 @@ export default function Employees() {
               <th>বিভাগ</th>
               <th>পদবী</th>
               <th>ব্লাড গ্রুপ</th>
-              <th>বেসিক</th>
               <th>মোবাইল</th>
-              <th>হোম ডিস্ট্রিক্ট</th>
-              <th>About</th>
-              <th>বর্তমান ঠিকানা</th>
-              <th>স্থায়ী ঠিকানা</th>
+              <th>ভিউ</th>
               <th>অ্যাকশন</th>
             </tr>
           </thead>
           <tbody>
             {employees.length === 0 ? (
               <tr>
-                <td colSpan={12}>কোন কর্মী পাওয়া যায়নি।</td>
+                <td colSpan={8}>কোন কর্মী পাওয়া যায়নি।</td>
               </tr>
             ) : (
               employees.map((emp) => (
@@ -441,12 +494,16 @@ export default function Employees() {
                   <td>{emp.dept}</td>
                   <td>{emp.designation}</td>
                   <td>{emp.blood_group || "-"}</td>
-                  <td>{Number(emp.basic_salary || 0).toLocaleString("bn-BD")}</td>
                   <td>{emp.mobile_number || "-"}</td>
-                  <td>{emp.home_district || "-"}</td>
-                  <td>{emp.about || "-"}</td>
-                  <td>{emp.present_address || "-"}</td>
-                  <td>{emp.permanent_address || "-"}</td>
+                  <td>
+                    <button
+                      className="button secondary"
+                      type="button"
+                      onClick={() => handleView(emp)}
+                    >
+                      ভিউ
+                    </button>
+                  </td>
                   <td>
                     <div className="inline-actions">
                       <button
