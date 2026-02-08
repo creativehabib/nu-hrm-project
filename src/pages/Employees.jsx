@@ -8,6 +8,8 @@ export default function Employees() {
   const [loading, setLoading] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const [isViewOpen, setIsViewOpen] = useState(false);
+  const [viewEmployee, setViewEmployee] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [formState, setFormState] = useState({
     name: "",
@@ -119,6 +121,11 @@ export default function Employees() {
     setIsFormOpen(false);
   };
 
+  const closeView = () => {
+    setIsViewOpen(false);
+    setViewEmployee(null);
+  };
+
   const handleChange = (event) => {
     const { name, value } = event.target;
     setFormState((prev) => ({ ...prev, [name]: value }));
@@ -145,6 +152,11 @@ export default function Employees() {
     setEditingId(emp.id);
     setError("");
     setIsFormOpen(true);
+  };
+
+  const handleView = (emp) => {
+    setViewEmployee(emp);
+    setIsViewOpen(true);
   };
 
   const handleDelete = async (empId) => {
@@ -325,6 +337,76 @@ export default function Employees() {
           নতুন কর্মী
         </button>
       </header>
+
+      {isViewOpen && viewEmployee && (
+        <div className="modal-overlay" role="presentation">
+          <div className="modal card" role="dialog" aria-modal="true">
+            <header className="modal-header print-hidden">
+              <div>
+                <h3>কর্মীর বিস্তারিত</h3>
+                <p>A4 পেইজে দেখুন, প্রিন্ট বা পিডিএফ হিসেবে সংরক্ষণ করুন।</p>
+              </div>
+              <div className="inline-actions">
+                <button
+                  className="button secondary"
+                  type="button"
+                  onClick={() => window.print()}
+                >
+                  প্রিন্ট / পিডিএফ
+                </button>
+                <button className="button secondary" type="button" onClick={closeView}>
+                  বন্ধ করুন
+                </button>
+              </div>
+            </header>
+            <section className="print-area">
+              <div className="print-header">
+                <div>
+                  <h2>কর্মীর প্রোফাইল</h2>
+                  <p>কর্মী আইডি: {viewEmployee.id}</p>
+                </div>
+                <span className="badge success">Active</span>
+              </div>
+              <div className="print-section">
+                <h3>{viewEmployee.name}</h3>
+                <p>PF নম্বর: {viewEmployee.pf_number}</p>
+              </div>
+              <div className="info-grid">
+                <div>
+                  <strong>বিভাগ:</strong> {viewEmployee.dept || "-"}
+                </div>
+                <div>
+                  <strong>পদবী:</strong> {viewEmployee.designation || "-"}
+                </div>
+                <div>
+                  <strong>মোবাইল:</strong> {viewEmployee.mobile_number || "-"}
+                </div>
+                <div>
+                  <strong>বেসিক বেতন:</strong> {viewEmployee.basic_salary || 0}
+                </div>
+                <div>
+                  <strong>রক্তের গ্রুপ:</strong> {viewEmployee.blood_group || "-"}
+                </div>
+                <div>
+                  <strong>হোম ডিস্ট্রিক্ট:</strong> {viewEmployee.home_district || "-"}
+                </div>
+                <div>
+                  <strong>বর্তমান ঠিকানা:</strong>{" "}
+                  {viewEmployee.present_address || "-"}
+                </div>
+                <div>
+                  <strong>স্থায়ী ঠিকানা:</strong>{" "}
+                  {viewEmployee.permanent_address || "-"}
+                </div>
+              </div>
+              <div className="print-section">
+                <strong>About:</strong>
+                <p>{viewEmployee.about || "কোনো তথ্য নেই।"}</p>
+              </div>
+            </section>
+          </div>
+        </div>
+      )}
 
       {isFormOpen && (
         <div className="modal-overlay" role="presentation">
@@ -513,6 +595,13 @@ export default function Employees() {
                   <td>{emp.mobile_number || "-"}</td>
                   <td>
                     <div className="inline-actions">
+                      <button
+                        className="button secondary"
+                        type="button"
+                        onClick={() => handleView(emp)}
+                      >
+                        ভিউ
+                      </button>
                       <button
                         className="button secondary"
                         type="button"
