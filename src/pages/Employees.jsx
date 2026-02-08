@@ -517,7 +517,6 @@ export default function Employees() {
               <th>পদবী</th>
               <th>ব্লাড গ্রুপ</th>
               <th>মোবাইল</th>
-              <th>ভিউ</th>
               <th>অ্যাকশন</th>
             </tr>
           </thead>
@@ -540,16 +539,14 @@ export default function Employees() {
                   <td>{emp.blood_group || "-"}</td>
                   <td>{emp.mobile_number || "-"}</td>
                   <td>
-                    <button
-                      className="button secondary"
-                      type="button"
-                      onClick={() => handleView(emp)}
-                    >
-                      ভিউ
-                    </button>
-                  </td>
-                  <td>
                     <div className="inline-actions">
+                       <button
+                            className="button secondary"
+                            type="button"
+                            onClick={() => handleView(emp)}
+                          >
+                            ভিউ
+                      </button>
                       <button
                         className="button secondary"
                         type="button"
