@@ -85,13 +85,23 @@ export default function Attendance() {
   };
 
   const handleDelete = async (recordId) => {
-    setRecords((prev) => prev.filter((record) => record.id !== recordId));
-
     if (!supabase) {
+      setError("Supabase কনফিগার হয়নি।");
       return;
     }
 
-    await supabase.from("attendance").delete().eq("id", recordId);
+    const { error: deleteError } = await supabase
+      .from("attendance")
+      .delete()
+      .eq("id", recordId);
+
+    if (deleteError) {
+      setError(`হাজিরা মুছতে সমস্যা হয়েছে: ${deleteError.message}`);
+      return;
+    }
+
+    setError("");
+    setRecords((prev) => prev.filter((record) => record.id !== recordId));
   };
 
   const handleSubmit = async (event) => {
@@ -106,6 +116,11 @@ export default function Attendance() {
     const employeeName =
       employees.find((emp) => emp.id === employeeIdValue)?.name ?? "-";
 
+    if (!supabase) {
+      setError("Supabase কনফিগার হয়নি।");
+      return;
+    }
+
     if (editingId) {
       const updated = {
         id: editingId,
@@ -115,56 +130,52 @@ export default function Attendance() {
         status: formState.status
       };
 
+      const { error: updateError } = await supabase
+        .from("attendance")
+        .update({
+          employee_id: updated.employee_id,
+          date: updated.date,
+          status: updated.status
+        })
+        .eq("id", editingId);
+
+      if (updateError) {
+        setError(`হাজিরা আপডেট হয়নি: ${updateError.message}`);
+        return;
+      }
+
       setRecords((prev) =>
         prev.map((record) => (record.id === editingId ? { ...record, ...updated } : record))
       );
-
-      if (supabase) {
-        await supabase
-          .from("attendance")
-          .update({
-            employee_id: updated.employee_id,
-            date: updated.date,
-            status: updated.status
-          })
-          .eq("id", editingId);
-      }
 
       resetForm();
       return;
     }
 
-    const newRecord = {
-      id: Date.now(),
-      employee_id: employeeIdValue,
-      employee_name: employeeName,
-      date: formState.date,
-      status: formState.status
-    };
+    const { data, error: insertError } = await supabase
+      .from("attendance")
+      .insert({
+        employee_id: employeeIdValue,
+        date: formState.date,
+        status: formState.status
+      })
+      .select("id, date, status, employee_id, employees(name)")
+      .single();
 
-    setRecords((prev) => [newRecord, ...prev]);
+    if (insertError) {
+      setError(`হাজিরা সংরক্ষণ হয়নি: ${insertError.message}`);
+      return;
+    }
 
-    if (supabase) {
-      const { data } = await supabase
-        .from("attendance")
-        .insert({
-          employee_id: newRecord.employee_id,
-          date: newRecord.date,
-          status: newRecord.status
-        })
-        .select("id, date, status, employee_id, employees(name)")
-        .single();
-
-      if (data) {
-        const normalized = {
-          id: data.id,
-          employee_id: data.employee_id ?? "",
-          employee_name: data.employees?.name ?? "-",
-          date: data.date,
-          status: data.status
-        };
-        setRecords((prev) => [normalized, ...prev.filter((record) => record.id !== newRecord.id)]);
-      }
+    if (data) {
+      const normalized = {
+        id: data.id,
+        employee_id: data.employee_id ?? "",
+        employee_name: data.employees?.name ?? "-",
+        date: data.date,
+        status: data.status
+      };
+      setRecords((prev) => [normalized, ...prev]);
     }
 
     resetForm();
