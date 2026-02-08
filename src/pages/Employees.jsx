@@ -8,6 +8,7 @@ export default function Employees() {
   const [loading, setLoading] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [selectedEmployee, setSelectedEmployee] = useState(null);
+  const [searchTerm, setSearchTerm] = useState("");
   const [formState, setFormState] = useState({
     name: "",
     pf_number: "",
@@ -116,6 +117,10 @@ export default function Employees() {
   const handleChange = (event) => {
     const { name, value } = event.target;
     setFormState((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleSearchChange = (event) => {
+    setSearchTerm(event.target.value);
   };
 
   const handleEdit = (emp) => {
@@ -278,6 +283,28 @@ export default function Employees() {
 
     resetForm();
   };
+
+  const normalizedSearch = searchTerm.trim().toLowerCase();
+  const filteredEmployees = employees.filter((emp) => {
+    if (!normalizedSearch) {
+      return true;
+    }
+
+    const fields = [
+      emp.name,
+      emp.pf_number,
+      emp.mobile_number,
+      emp.dept,
+      emp.designation,
+      emp.blood_group,
+      emp.home_district
+    ]
+      .filter(Boolean)
+      .join(" ")
+      .toLowerCase();
+
+    return fields.includes(normalizedSearch);
+  });
 
   return (
     <div>
@@ -470,6 +497,17 @@ export default function Employees() {
       )}
 
       <section className="section">
+        <div className="table-toolbar">
+          <label className="field">
+            <span>লাইভ সার্চ</span>
+            <input
+              name="employee_search"
+              value={searchTerm}
+              onChange={handleSearchChange}
+              placeholder="নাম, PF, মোবাইল, বিভাগ..."
+            />
+          </label>
+        </div>
         <table className="table">
           <thead>
             <tr>
@@ -488,8 +526,12 @@ export default function Employees() {
               <tr>
                 <td colSpan={8}>কোন কর্মী পাওয়া যায়নি।</td>
               </tr>
+            ) : filteredEmployees.length === 0 ? (
+              <tr>
+                <td colSpan={8}>কোন মিল পাওয়া যায়নি।</td>
+              </tr>
             ) : (
-              employees.map((emp) => (
+              filteredEmployees.map((emp) => (
                 <tr key={emp.id}>
                   <td>{emp.name}</td>
                   <td>{emp.pf_number}</td>

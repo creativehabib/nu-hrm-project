@@ -63,6 +63,17 @@ body {
   margin-bottom: 24px;
 }
 
+.table-toolbar {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 16px;
+}
+
+.table-toolbar .field {
+  max-width: 320px;
+  width: 100%;
+}
+
 .card-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
