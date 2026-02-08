@@ -371,6 +371,26 @@ export default function Employees() {
               placeholder="35000"
             />
           </label>
+          <label className="field">
+            বর্তমান ঠিকানা
+            <textarea
+              name="present_address"
+              value={formState.present_address}
+              onChange={handleChange}
+              placeholder="বর্তমান ঠিকানা"
+              rows={2}
+            />
+          </label>
+          <label className="field">
+            স্থায়ী ঠিকানা
+            <textarea
+              name="permanent_address"
+              value={formState.permanent_address}
+              onChange={handleChange}
+              placeholder="স্থায়ী ঠিকানা"
+              rows={2}
+            />
+          </label>
           <label className="field field-full">
             About
             <textarea
