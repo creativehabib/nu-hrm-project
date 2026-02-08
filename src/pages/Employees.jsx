@@ -7,7 +7,7 @@ export default function Employees() {
   const [designations, setDesignations] = useState([]);
   const [loading, setLoading] = useState(false);
   const [editingId, setEditingId] = useState(null);
-  const [selectedEmployee, setSelectedEmployee] = useState(null);
+  const [isFormOpen, setIsFormOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [formState, setFormState] = useState({
     name: "",
@@ -114,6 +114,11 @@ export default function Employees() {
     setError("");
   };
 
+  const closeForm = () => {
+    resetForm();
+    setIsFormOpen(false);
+  };
+
   const handleChange = (event) => {
     const { name, value } = event.target;
     setFormState((prev) => ({ ...prev, [name]: value }));
@@ -139,10 +144,7 @@ export default function Employees() {
     });
     setEditingId(emp.id);
     setError("");
-  };
-
-  const handleView = (emp) => {
-    setSelectedEmployee(emp);
+    setIsFormOpen(true);
   };
 
   const handleDelete = async (empId) => {
@@ -163,7 +165,6 @@ export default function Employees() {
 
     setError("");
     setEmployees((prev) => prev.filter((emp) => emp.id !== empId));
-    setSelectedEmployee((prev) => (prev?.id === empId ? null : prev));
   };
 
   const handleSubmit = async (event) => {
@@ -232,7 +233,7 @@ export default function Employees() {
         prev.map((emp) => (emp.id === editingId ? { ...emp, ...updated } : emp))
       );
 
-      resetForm();
+      closeForm();
       return;
     }
 
@@ -281,7 +282,7 @@ export default function Employees() {
       setEmployees((prev) => [normalized, ...prev]);
     }
 
-    resetForm();
+    closeForm();
   };
 
   const normalizedSearch = searchTerm.trim().toLowerCase();
@@ -313,187 +314,153 @@ export default function Employees() {
           <h2>কর্মী তালিকা</h2>
           <p>কর্মীদের তথ্য সংরক্ষণ ও হালনাগাদ করুন।</p>
         </div>
-        <button className="button" type="button" onClick={resetForm}>
+        <button
+          className="button"
+          type="button"
+          onClick={() => {
+            resetForm();
+            setIsFormOpen(true);
+          }}
+        >
           নতুন কর্মী
         </button>
       </header>
 
-      <section className="section card">
-        <h3>{editingId ? "কর্মী হালনাগাদ করুন" : "দ্রুত যোগ করুন"}</h3>
-        <form className="form-grid" onSubmit={handleSubmit}>
-          <label className="field">
-            নাম
-            <input
-              name="name"
-              value={formState.name}
-              onChange={handleChange}
-              placeholder="কর্মীর নাম"
-            />
-          </label>
-          <label className="field">
-            PF নম্বর
-            <input
-              name="pf_number"
-              value={formState.pf_number}
-              onChange={handleChange}
-              placeholder="PF-1005"
-            />
-          </label>
-          <label className="field">
-            মোবাইল
-            <input
-              name="mobile_number"
-              value={formState.mobile_number}
-              onChange={handleChange}
-              placeholder="01XXXXXXXXX"
-            />
-          </label>
-          <label className="field">
-            রক্তের গ্রুপ
-            <input
-              name="blood_group"
-              value={formState.blood_group}
-              onChange={handleChange}
-              placeholder="A+"
-            />
-          </label>
-          <label className="field">
-            বিভাগ
-            <select name="dept_id" value={formState.dept_id} onChange={handleChange}>
-              <option value="">বিভাগ নির্বাচন করুন</option>
-              {departments.map((dept) => (
-                <option key={dept.id} value={dept.id}>
-                  {dept.name}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label className="field">
-            পদবী
-            <select name="desig_id" value={formState.desig_id} onChange={handleChange}>
-              <option value="">পদবী নির্বাচন করুন</option>
-              {designations.map((desig) => (
-                <option key={desig.id} value={desig.id}>
-                  {desig.name}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label className="field">
-            হোম ডিস্ট্রিক্ট
-            <input
-              name="home_district"
-              value={formState.home_district}
-              onChange={handleChange}
-              placeholder="হোম ডিস্ট্রিক্ট"
-            />
-          </label>
-          <label className="field">
-            বেসিক বেতন
-            <input
-              name="basic_salary"
-              type="number"
-              value={formState.basic_salary}
-              onChange={handleChange}
-              placeholder="35000"
-            />
-          </label>
-          <label className="field">
-            বর্তমান ঠিকানা
-            <textarea
-              name="present_address"
-              value={formState.present_address}
-              onChange={handleChange}
-              placeholder="বর্তমান ঠিকানা"
-              rows={2}
-            />
-          </label>
-          <label className="field">
-            স্থায়ী ঠিকানা
-            <textarea
-              name="permanent_address"
-              value={formState.permanent_address}
-              onChange={handleChange}
-              placeholder="স্থায়ী ঠিকানা"
-              rows={2}
-            />
-          </label>
-          <label className="field field-full">
-            About
-            <textarea
-              name="about"
-              value={formState.about}
-              onChange={handleChange}
-              placeholder="কর্মীর সংক্ষিপ্ত তথ্য"
-              rows={3}
-            />
-          </label>
-          <div className="field">
-            <span>অ্যাকশন</span>
-            <div className="inline-actions">
-              <button className="button" type="submit">
-                {editingId ? "আপডেট করুন" : "সংরক্ষণ করুন"}
+      {isFormOpen && (
+        <div className="modal-overlay" role="presentation">
+          <div className="modal card" role="dialog" aria-modal="true">
+            <header className="modal-header">
+              <div>
+                <h3>{editingId ? "কর্মী হালনাগাদ করুন" : "নতুন কর্মী যোগ করুন"}</h3>
+                <p>কর্মীর তথ্য পূরণ করে সংরক্ষণ করুন।</p>
+              </div>
+              <button className="button secondary" type="button" onClick={closeForm}>
+                বন্ধ করুন
               </button>
-              {editingId && (
-                <button className="button secondary" type="button" onClick={resetForm}>
-                  বাতিল
-                </button>
-              )}
-            </div>
+            </header>
+            <form className="form-grid" onSubmit={handleSubmit}>
+              <label className="field">
+                নাম
+                <input
+                  name="name"
+                  value={formState.name}
+                  onChange={handleChange}
+                  placeholder="কর্মীর নাম"
+                />
+              </label>
+              <label className="field">
+                PF নম্বর
+                <input
+                  name="pf_number"
+                  value={formState.pf_number}
+                  onChange={handleChange}
+                  placeholder="PF-1005"
+                />
+              </label>
+              <label className="field">
+                মোবাইল
+                <input
+                  name="mobile_number"
+                  value={formState.mobile_number}
+                  onChange={handleChange}
+                  placeholder="01XXXXXXXXX"
+                />
+              </label>
+              <label className="field">
+                রক্তের গ্রুপ
+                <input
+                  name="blood_group"
+                  value={formState.blood_group}
+                  onChange={handleChange}
+                  placeholder="A+"
+                />
+              </label>
+              <label className="field">
+                বিভাগ
+                <select name="dept_id" value={formState.dept_id} onChange={handleChange}>
+                  <option value="">বিভাগ নির্বাচন করুন</option>
+                  {departments.map((dept) => (
+                    <option key={dept.id} value={dept.id}>
+                      {dept.name}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="field">
+                পদবী
+                <select name="desig_id" value={formState.desig_id} onChange={handleChange}>
+                  <option value="">পদবী নির্বাচন করুন</option>
+                  {designations.map((desig) => (
+                    <option key={desig.id} value={desig.id}>
+                      {desig.name}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="field">
+                হোম ডিস্ট্রিক্ট
+                <input
+                  name="home_district"
+                  value={formState.home_district}
+                  onChange={handleChange}
+                  placeholder="হোম ডিস্ট্রিক্ট"
+                />
+              </label>
+              <label className="field">
+                বেসিক বেতন
+                <input
+                  name="basic_salary"
+                  type="number"
+                  value={formState.basic_salary}
+                  onChange={handleChange}
+                  placeholder="35000"
+                />
+              </label>
+              <label className="field">
+                বর্তমান ঠিকানা
+                <textarea
+                  name="present_address"
+                  value={formState.present_address}
+                  onChange={handleChange}
+                  placeholder="বর্তমান ঠিকানা"
+                  rows={2}
+                />
+              </label>
+              <label className="field">
+                স্থায়ী ঠিকানা
+                <textarea
+                  name="permanent_address"
+                  value={formState.permanent_address}
+                  onChange={handleChange}
+                  placeholder="স্থায়ী ঠিকানা"
+                  rows={2}
+                />
+              </label>
+              <label className="field field-full">
+                About
+                <textarea
+                  name="about"
+                  value={formState.about}
+                  onChange={handleChange}
+                  placeholder="কর্মীর সংক্ষিপ্ত তথ্য"
+                  rows={3}
+                />
+              </label>
+              <div className="field">
+                <span>অ্যাকশন</span>
+                <div className="inline-actions">
+                  <button className="button" type="submit">
+                    {editingId ? "আপডেট করুন" : "সংরক্ষণ করুন"}
+                  </button>
+                  <button className="button secondary" type="button" onClick={closeForm}>
+                    বাতিল
+                  </button>
+                </div>
+              </div>
+            </form>
+            {error && <p className="form-error">{error}</p>}
           </div>
-        </form>
-        {error && <p className="form-error">{error}</p>}
-      </section>
-
-      {selectedEmployee && (
-        <section className="section card">
-          <header className="page-header">
-            <div>
-              <h3>কর্মী তথ্য</h3>
-              <p>{selectedEmployee.name}</p>
-            </div>
-            <button
-              className="button secondary"
-              type="button"
-              onClick={() => setSelectedEmployee(null)}
-            >
-              বন্ধ করুন
-            </button>
-          </header>
-          <div className="info-grid">
-            <div>
-              <strong>PF নম্বর:</strong> {selectedEmployee.pf_number || "-"}
-            </div>
-            <div>
-              <strong>বিভাগ:</strong> {selectedEmployee.dept || "-"}
-            </div>
-            <div>
-              <strong>পদবী:</strong> {selectedEmployee.designation || "-"}
-            </div>
-            <div>
-              <strong>ব্লাড গ্রুপ:</strong> {selectedEmployee.blood_group || "-"}
-            </div>
-            <div>
-              <strong>মোবাইল:</strong> {selectedEmployee.mobile_number || "-"}
-            </div>
-            <div>
-              <strong>বেসিক বেতন:</strong>{" "}
-              {Number(selectedEmployee.basic_salary || 0).toLocaleString("bn-BD")}
-            </div>
-            <div>
-              <strong>হোম ডিস্ট্রিক্ট:</strong> {selectedEmployee.home_district || "-"}
-            </div>
-            <div>
-              <strong>বর্তমান ঠিকানা:</strong> {selectedEmployee.present_address || "-"}
-            </div>
-            <div>
-              <strong>স্থায়ী ঠিকানা:</strong> {selectedEmployee.permanent_address || "-"}
-            </div>
-            <div>
-              <strong>About:</strong> {selectedEmployee.about || "-"}
-            </div>
-          </div>
-        </section>
+        </div>
       )}
 
       <section className="section">
@@ -540,13 +507,6 @@ export default function Employees() {
                   <td>{emp.mobile_number || "-"}</td>
                   <td>
                     <div className="inline-actions">
-                       <button
-                            className="button secondary"
-                            type="button"
-                            onClick={() => handleView(emp)}
-                          >
-                            ভিউ
-                      </button>
                       <button
                         className="button secondary"
                         type="button"
