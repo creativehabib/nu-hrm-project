@@ -54,11 +54,11 @@ export default function Dashboard() {
 
       const { data } = await supabase
         .from("leave_requests")
-        .select("type, status");
+        .select("leave_type, status");
 
       if (data) {
         const summary = data.reduce((acc, item) => {
-          const type = item.type || "অন্যান্য";
+          const type = item.leave_type || "অন্যান্য";
           if (!acc[type]) {
             acc[type] = { type, used: 0, total: 0 };
           }

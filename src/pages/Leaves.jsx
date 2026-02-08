@@ -17,8 +17,8 @@ export default function Leaves() {
   const [editingRequestId, setEditingRequestId] = useState(null);
   const [editingHolidayId, setEditingHolidayId] = useState(null);
   const [requestForm, setRequestForm] = useState({
-    employee: "",
-    type: "",
+    employee_id: "",
+    leave_type: "",
     start_date: "",
     end_date: "",
     status: "Pending"
@@ -39,7 +39,7 @@ export default function Leaves() {
       setLoadingRequests(true);
       const { data, error } = await supabase
         .from("leave_requests")
-        .select("id, employee, type, start_date, end_date, status")
+        .select("id, employee_id, leave_type, start_date, end_date, status, employees(name)")
         .order("start_date", { ascending: false });
 
       if (!error && data) {
@@ -92,8 +92,8 @@ export default function Leaves() {
 
   const resetRequestForm = () => {
     setRequestForm({
-      employee: "",
-      type: "",
+      employee_id: "",
+      leave_type: "",
       start_date: "",
       end_date: "",
       status: "Pending"
@@ -120,8 +120,8 @@ export default function Leaves() {
 
   const handleRequestEdit = (request) => {
     setRequestForm({
-      employee: request.employee ?? "",
-      type: request.type ?? "",
+      employee_id: request.employee_id ? String(request.employee_id) : "",
+      leave_type: request.leave_type ?? "",
       start_date: request.start_date ?? "",
       end_date: request.end_date ?? "",
       status: request.status ?? "Pending"
@@ -179,7 +179,7 @@ export default function Leaves() {
   const handleRequestSubmit = async (event) => {
     event.preventDefault();
 
-    if (!requestForm.employee.trim() || !requestForm.type.trim()) {
+    if (!requestForm.employee_id || !requestForm.leave_type.trim()) {
       setRequestError("কর্মী এবং ছুটির ধরন লিখুন।");
       return;
     }
@@ -199,8 +199,8 @@ export default function Leaves() {
     if (editingRequestId) {
       const updated = {
         id: editingRequestId,
-        employee: requestForm.employee.trim(),
-        type: requestForm.type.trim(),
+        employee_id: Number(requestForm.employee_id),
+        leave_type: requestForm.leave_type.trim(),
         start_date: requestForm.start_date,
         end_date: requestForm.end_date || null,
         status: requestForm.status
@@ -209,8 +209,8 @@ export default function Leaves() {
       const { error: updateError } = await supabase
         .from("leave_requests")
         .update({
-          employee: updated.employee,
-          type: updated.type,
+          employee_id: updated.employee_id,
+          leave_type: updated.leave_type,
           start_date: updated.start_date,
           end_date: updated.end_date,
           status: updated.status
@@ -235,13 +235,13 @@ export default function Leaves() {
     const { data, error: insertError } = await supabase
       .from("leave_requests")
       .insert({
-        employee: requestForm.employee.trim(),
-        type: requestForm.type.trim(),
+        employee_id: Number(requestForm.employee_id),
+        leave_type: requestForm.leave_type.trim(),
         start_date: requestForm.start_date,
         end_date: requestForm.end_date || null,
         status: requestForm.status
       })
-      .select("id, employee, type, start_date, end_date, status")
+      .select("id, employee_id, leave_type, start_date, end_date, status, employees(name)")
       .single();
 
     if (insertError) {
@@ -330,9 +330,9 @@ export default function Leaves() {
     return `${start} - ${end}`;
   };
 
-  const employeeNames = employees.map((employee) => employee.name).filter(Boolean);
+  const employeeIds = employees.map((employee) => String(employee.id));
   const isSelectedEmployeeMissing =
-    requestForm.employee && !employeeNames.includes(requestForm.employee);
+    requestForm.employee_id && !employeeIds.includes(requestForm.employee_id);
 
   return (
     <div>
@@ -352,8 +352,8 @@ export default function Leaves() {
           <label className="field">
             কর্মী
             <select
-              name="employee"
-              value={requestForm.employee}
+              name="employee_id"
+              value={requestForm.employee_id}
               onChange={handleRequestChange}
               disabled={loadingEmployees}
             >
@@ -361,10 +361,12 @@ export default function Leaves() {
                 {loadingEmployees ? "লোড হচ্ছে..." : "কর্মী নির্বাচন করুন"}
               </option>
               {isSelectedEmployeeMissing && (
-                <option value={requestForm.employee}>{requestForm.employee}</option>
+                <option value={requestForm.employee_id}>
+                  {requestForm.employee_id}
+                </option>
               )}
               {employees.map((employee) => (
-                <option key={employee.id} value={employee.name ?? ""}>
+                <option key={employee.id} value={employee.id}>
                   {employee.name}
                 </option>
               ))}
@@ -373,8 +375,8 @@ export default function Leaves() {
           <label className="field">
             ছুটির ধরন
             <input
-              name="type"
-              value={requestForm.type}
+              name="leave_type"
+              value={requestForm.leave_type}
               onChange={handleRequestChange}
               placeholder="ক্যাজুয়াল / সিক"
             />
@@ -443,8 +445,8 @@ export default function Leaves() {
             ) : (
               requests.map((request) => (
                 <tr key={request.id}>
-                  <td>{request.employee}</td>
-                  <td>{request.type}</td>
+                  <td>{request.employees?.name ?? request.employee_id ?? "-"}</td>
+                  <td>{request.leave_type}</td>
                   <td>{renderDateRange(request)}</td>
                   <td>
                     <span
