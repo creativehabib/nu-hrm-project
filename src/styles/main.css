@@ -300,6 +300,17 @@ body {
 }
 
 @media print {
+  @page {
+    size: A4;
+    margin: 0;
+  }
+
+  html,
+  body {
+    margin: 0;
+    padding: 0;
+  }
+
   body * {
     visibility: hidden;
   }
@@ -310,12 +321,15 @@ body {
   }
 
   .print-area {
-    position: absolute;
-    inset: 0;
+    position: static;
     width: 210mm;
-    min-height: 297mm;
-    padding: 20mm;
+    height: 297mm;
+    padding: 12mm;
     border: none;
+    border-radius: 0;
+    box-shadow: none;
+    overflow: hidden;
+    page-break-after: avoid;
   }
 
   .print-hidden {
