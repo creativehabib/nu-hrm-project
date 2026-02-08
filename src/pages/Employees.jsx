@@ -9,6 +9,7 @@ const fallbackEmployees = [
     mobile_number: "01711-000000",
     designation: "HR Officer",
     dept: "মানব সম্পদ",
+    department_id: 1,
     job_grade: "G-5",
     basic_salary: 35000
   },
@@ -19,14 +20,33 @@ const fallbackEmployees = [
     mobile_number: "01811-000000",
     designation: "Software Engineer",
     dept: "আইটি",
+    department_id: 3,
     job_grade: "G-6",
     basic_salary: 50000
   }
 ];
 
+const fallbackDepartments = [
+  { id: 1, name: "মানব সম্পদ" },
+  { id: 2, name: "হিসাব" },
+  { id: 3, name: "আইটি" }
+];
+
 export default function Employees() {
   const [employees, setEmployees] = useState(fallbackEmployees);
+  const [departments, setDepartments] = useState(fallbackDepartments);
   const [loading, setLoading] = useState(false);
+  const [editingId, setEditingId] = useState(null);
+  const [formState, setFormState] = useState({
+    name: "",
+    pf_number: "",
+    mobile_number: "",
+    designation: "",
+    department_id: "",
+    job_grade: "",
+    basic_salary: ""
+  });
+  const [error, setError] = useState("");
 
   useEffect(() => {
     const loadEmployees = async () => {
@@ -38,7 +58,7 @@ export default function Employees() {
       const { data, error } = await supabase
         .from("employees")
         .select(
-          "id, name, pf_number, mobile_number, designation, job_grade, basic_salary, departments(name)"
+          "id, name, pf_number, mobile_number, designation, job_grade, basic_salary, department_id, departments(name)"
         )
         .order("id", { ascending: false });
 
@@ -50,6 +70,7 @@ export default function Employees() {
           mobile_number: row.mobile_number,
           designation: row.designation,
           dept: row.departments?.name ?? "-",
+          department_id: row.department_id ?? "",
           job_grade: row.job_grade,
           basic_salary: row.basic_salary
         }));
@@ -59,8 +80,167 @@ export default function Employees() {
       setLoading(false);
     };
 
+    const loadDepartments = async () => {
+      if (!supabase) {
+        return;
+      }
+
+      const { data, error } = await supabase
+        .from("departments")
+        .select("id, name")
+        .order("name");
+
+      if (!error && data) {
+        setDepartments(data);
+      }
+    };
+
     loadEmployees();
+    loadDepartments();
   }, []);
+
+  const resetForm = () => {
+    setFormState({
+      name: "",
+      pf_number: "",
+      mobile_number: "",
+      designation: "",
+      department_id: "",
+      job_grade: "",
+      basic_salary: ""
+    });
+    setEditingId(null);
+    setError("");
+  };
+
+  const handleChange = (event) => {
+    const { name, value } = event.target;
+    setFormState((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleEdit = (emp) => {
+    setFormState({
+      name: emp.name ?? "",
+      pf_number: emp.pf_number ?? "",
+      mobile_number: emp.mobile_number ?? "",
+      designation: emp.designation ?? "",
+      department_id: emp.department_id ? String(emp.department_id) : "",
+      job_grade: emp.job_grade ?? "",
+      basic_salary: emp.basic_salary ?? ""
+    });
+    setEditingId(emp.id);
+    setError("");
+  };
+
+  const handleDelete = async (empId) => {
+    setEmployees((prev) => prev.filter((emp) => emp.id !== empId));
+
+    if (!supabase) {
+      return;
+    }
+
+    await supabase.from("employees").delete().eq("id", empId);
+  };
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    if (!formState.name.trim() || !formState.pf_number.trim()) {
+      setError("নাম এবং PF নম্বর প্রয়োজন।");
+      return;
+    }
+
+    setError("");
+    const departmentIdValue = formState.department_id
+      ? Number(formState.department_id)
+      : null;
+    const departmentName =
+      departments.find((dept) => dept.id === departmentIdValue)?.name ?? "-";
+
+    if (editingId) {
+      const updated = {
+        id: editingId,
+        name: formState.name.trim(),
+        pf_number: formState.pf_number.trim(),
+        mobile_number: formState.mobile_number.trim(),
+        designation: formState.designation.trim(),
+        department_id: departmentIdValue,
+        dept: departmentName,
+        job_grade: formState.job_grade.trim(),
+        basic_salary: Number(formState.basic_salary) || 0
+      };
+
+      setEmployees((prev) =>
+        prev.map((emp) => (emp.id === editingId ? { ...emp, ...updated } : emp))
+      );
+
+      if (supabase) {
+        await supabase
+          .from("employees")
+          .update({
+            name: updated.name,
+            pf_number: updated.pf_number,
+            mobile_number: updated.mobile_number || null,
+            designation: updated.designation || null,
+            department_id: updated.department_id,
+            job_grade: updated.job_grade || null,
+            basic_salary: updated.basic_salary || 0
+          })
+          .eq("id", editingId);
+      }
+
+      resetForm();
+      return;
+    }
+
+    const newEmployee = {
+      id: Date.now(),
+      name: formState.name.trim(),
+      pf_number: formState.pf_number.trim(),
+      mobile_number: formState.mobile_number.trim(),
+      designation: formState.designation.trim(),
+      department_id: departmentIdValue,
+      dept: departmentName,
+      job_grade: formState.job_grade.trim(),
+      basic_salary: Number(formState.basic_salary) || 0
+    };
+
+    setEmployees((prev) => [newEmployee, ...prev]);
+
+    if (supabase) {
+      const { data } = await supabase
+        .from("employees")
+        .insert({
+          name: newEmployee.name,
+          pf_number: newEmployee.pf_number,
+          mobile_number: newEmployee.mobile_number || null,
+          designation: newEmployee.designation || null,
+          job_grade: newEmployee.job_grade || null,
+          basic_salary: newEmployee.basic_salary || 0,
+          department_id: newEmployee.department_id
+        })
+        .select(
+          "id, name, pf_number, mobile_number, designation, job_grade, basic_salary, department_id, departments(name)"
+        )
+        .single();
+
+      if (data) {
+        const normalized = {
+          id: data.id,
+          name: data.name,
+          pf_number: data.pf_number,
+          mobile_number: data.mobile_number,
+          designation: data.designation,
+          dept: data.departments?.name ?? "-",
+          department_id: data.department_id ?? "",
+          job_grade: data.job_grade,
+          basic_salary: data.basic_salary
+        };
+        setEmployees((prev) => [normalized, ...prev.filter((emp) => emp.id !== newEmployee.id)]);
+      }
+    }
+
+    resetForm();
+  };
 
   return (
     <div>
@@ -69,33 +249,95 @@ export default function Employees() {
           <h2>কর্মী তালিকা</h2>
           <p>কর্মীদের তথ্য সংরক্ষণ ও হালনাগাদ করুন।</p>
         </div>
-        <button className="button">নতুন কর্মী</button>
+        <button className="button" type="button" onClick={resetForm}>
+          নতুন কর্মী
+        </button>
       </header>
 
       <section className="section card">
-        <h3>দ্রুত যোগ করুন</h3>
-        <div className="form-grid">
+        <h3>{editingId ? "কর্মী হালনাগাদ করুন" : "দ্রুত যোগ করুন"}</h3>
+        <form className="form-grid" onSubmit={handleSubmit}>
           <label className="field">
             নাম
-            <input placeholder="কর্মীর নাম" />
+            <input
+              name="name"
+              value={formState.name}
+              onChange={handleChange}
+              placeholder="কর্মীর নাম"
+            />
           </label>
           <label className="field">
             PF নম্বর
-            <input placeholder="PF-1005" />
+            <input
+              name="pf_number"
+              value={formState.pf_number}
+              onChange={handleChange}
+              placeholder="PF-1005"
+            />
+          </label>
+          <label className="field">
+            মোবাইল
+            <input
+              name="mobile_number"
+              value={formState.mobile_number}
+              onChange={handleChange}
+              placeholder="01XXXXXXXXX"
+            />
           </label>
           <label className="field">
             বিভাগ
-            <select>
-              <option>মানব সম্পদ</option>
-              <option>আইটি</option>
-              <option>হিসাব</option>
+            <select name="department_id" value={formState.department_id} onChange={handleChange}>
+              <option value="">বিভাগ নির্বাচন করুন</option>
+              {departments.map((dept) => (
+                <option key={dept.id} value={dept.id}>
+                  {dept.name}
+                </option>
+              ))}
             </select>
           </label>
           <label className="field">
             পদবী
-            <input placeholder="Designation" />
+            <input
+              name="designation"
+              value={formState.designation}
+              onChange={handleChange}
+              placeholder="Designation"
+            />
           </label>
-        </div>
+          <label className="field">
+            গ্রেড
+            <input
+              name="job_grade"
+              value={formState.job_grade}
+              onChange={handleChange}
+              placeholder="G-5"
+            />
+          </label>
+          <label className="field">
+            বেসিক বেতন
+            <input
+              name="basic_salary"
+              type="number"
+              value={formState.basic_salary}
+              onChange={handleChange}
+              placeholder="35000"
+            />
+          </label>
+          <div className="field">
+            <span>অ্যাকশন</span>
+            <div className="inline-actions">
+              <button className="button" type="submit">
+                {editingId ? "আপডেট করুন" : "সংরক্ষণ করুন"}
+              </button>
+              {editingId && (
+                <button className="button secondary" type="button" onClick={resetForm}>
+                  বাতিল
+                </button>
+              )}
+            </div>
+          </div>
+        </form>
+        {error && <p className="form-error">{error}</p>}
       </section>
 
       <section className="section">
@@ -109,6 +351,7 @@ export default function Employees() {
               <th>গ্রেড</th>
               <th>বেসিক</th>
               <th>মোবাইল</th>
+              <th>অ্যাকশন</th>
             </tr>
           </thead>
           <tbody>
@@ -121,6 +364,24 @@ export default function Employees() {
                 <td>{emp.job_grade}</td>
                 <td>{emp.basic_salary.toLocaleString("bn-BD")}</td>
                 <td>{emp.mobile_number}</td>
+                <td>
+                  <div className="inline-actions">
+                    <button
+                      className="button secondary"
+                      type="button"
+                      onClick={() => handleEdit(emp)}
+                    >
+                      সম্পাদনা
+                    </button>
+                    <button
+                      className="button danger"
+                      type="button"
+                      onClick={() => handleDelete(emp.id)}
+                    >
+                      মুছুন
+                    </button>
+                  </div>
+                </td>
               </tr>
             ))}
           </tbody>

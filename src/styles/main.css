@@ -137,6 +137,28 @@ body {
   cursor: pointer;
 }
 
+.button.secondary {
+  background: #eef1f8;
+  color: #1b263d;
+}
+
+.button.danger {
+  background: #ffebe9;
+  color: #b42318;
+}
+
+.inline-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.form-error {
+  margin: 12px 0 0;
+  color: #b42318;
+  font-weight: 600;
+}
+
 .badge {
   display: inline-flex;
   align-items: center;
