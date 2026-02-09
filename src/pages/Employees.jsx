@@ -451,13 +451,13 @@ export default function Employees() {
                 </button>
               </div>
             </header>
-            <section ref={printRef} className="print-area">
+            <section ref={printRef}>
               <EmployeeInfoA4
                 company={{
-                  name: "Nu HRM Project",
-                  address: "House 00, Road 00, Dhaka-1200",
+                  name: "National University",
+                  address: "Bangladesh",
                   phone: "+8801XXXXXXXXX",
-                  email: "hr@company.com",
+                  email: "registrar@nu.ac.bd",
                   logoUrl: ""
                 }}
                 employee={{
