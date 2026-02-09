@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { useReactToPrint } from "react-to-print";
+import { useReactToPrint } from "../utils/react-to-print";
 import { supabase } from "../supabaseClient";
 import EmployeeInfoA4 from "../components/EmployeeInfoA4";
 

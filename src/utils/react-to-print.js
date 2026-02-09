@@ -44,11 +44,23 @@ export const useReactToPrint = ({ content, documentTitle } = {}) => {
       document.body.removeChild(iframe);
     };
 
-    iframe.contentWindow?.addEventListener("afterprint", afterPrint);
-    iframe.contentWindow?.focus();
+    const triggerPrint = () => {
+      const printWindow = iframe.contentWindow;
+      if (!printWindow) {
+        return;
+      }
+      printWindow.focus();
+      printWindow.print();
+    };
 
-    setTimeout(() => {
-      iframe.contentWindow?.print();
-    }, 250);
+    const awaitFonts = printDocument.fonts?.ready ?? Promise.resolve();
+
+    iframe.contentWindow?.addEventListener("afterprint", afterPrint);
+
+    awaitFonts.then(() => {
+      requestAnimationFrame(() => {
+        setTimeout(triggerPrint, 150);
+      });
+    });
   };
 };
