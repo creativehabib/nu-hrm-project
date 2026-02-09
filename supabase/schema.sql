@@ -19,6 +19,7 @@ create table if not exists employees (
   dob date,
   nid text,
   gender text,
+  employee_type text,
   employee_status text,
   about text,
   blood_group text,

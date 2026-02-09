@@ -21,6 +21,7 @@ export default function Employees() {
     dob: "",
     nid: "",
     gender: "",
+    employee_type: "",
     employee_status: "",
     present_address: "",
     permanent_address: "",
@@ -48,7 +49,7 @@ export default function Employees() {
       const { data, error } = await supabase
         .from("employees")
         .select(
-          "id, name, pf_number, mobile_number, email, dob, nid, gender, employee_status, present_address, permanent_address, blood_group, home_district, bank_name, ac_no, joining_date, prl_date, about, basic_salary, dept_id, desig_id, departments(name), designations(name)"
+          "id, name, pf_number, mobile_number, email, dob, nid, gender, employee_type, employee_status, present_address, permanent_address, blood_group, home_district, bank_name, ac_no, joining_date, prl_date, about, basic_salary, dept_id, desig_id, departments(name), designations(name)"
         )
         .order("id", { ascending: false });
 
@@ -62,6 +63,7 @@ export default function Employees() {
           dob: row.dob,
           nid: row.nid,
           gender: row.gender,
+          employee_type: row.employee_type,
           employee_status: row.employee_status,
           present_address: row.present_address,
           permanent_address: row.permanent_address,
@@ -128,6 +130,7 @@ export default function Employees() {
       dob: "",
       nid: "",
       gender: "",
+      employee_type: "",
       employee_status: "",
       present_address: "",
       permanent_address: "",
@@ -174,6 +177,7 @@ export default function Employees() {
       dob: emp.dob ?? "",
       nid: emp.nid ?? "",
       gender: emp.gender ?? "",
+      employee_type: emp.employee_type ?? "",
       employee_status: emp.employee_status ?? "",
       present_address: emp.present_address ?? "",
       permanent_address: emp.permanent_address ?? "",
@@ -257,6 +261,7 @@ export default function Employees() {
         dob: formState.dob || null,
         nid: formState.nid.trim(),
         gender: formState.gender.trim(),
+        employee_type: formState.employee_type.trim(),
         employee_status: formState.employee_status.trim(),
         present_address: formState.present_address.trim(),
         permanent_address: formState.permanent_address.trim(),
@@ -284,6 +289,7 @@ export default function Employees() {
           dob: updated.dob || null,
           nid: updated.nid || null,
           gender: updated.gender || null,
+          employee_type: updated.employee_type || null,
           employee_status: updated.employee_status || null,
           present_address: updated.present_address || null,
           permanent_address: updated.permanent_address || null,
@@ -323,6 +329,7 @@ export default function Employees() {
         dob: formState.dob || null,
         nid: formState.nid.trim() || null,
         gender: formState.gender.trim() || null,
+        employee_type: formState.employee_type.trim() || null,
         employee_status: formState.employee_status.trim() || null,
         present_address: formState.present_address.trim() || null,
         permanent_address: formState.permanent_address.trim() || null,
@@ -338,7 +345,7 @@ export default function Employees() {
         desig_id: designationIdValue
       })
       .select(
-        "id, name, pf_number, mobile_number, email, dob, nid, gender, employee_status, present_address, permanent_address, blood_group, home_district, bank_name, ac_no, joining_date, prl_date, about, basic_salary, dept_id, desig_id, departments(name), designations(name)"
+        "id, name, pf_number, mobile_number, email, dob, nid, gender, employee_type, employee_status, present_address, permanent_address, blood_group, home_district, bank_name, ac_no, joining_date, prl_date, about, basic_salary, dept_id, desig_id, departments(name), designations(name)"
       )
       .single();
 
@@ -357,6 +364,7 @@ export default function Employees() {
         dob: data.dob,
         nid: data.nid,
         gender: data.gender,
+        employee_type: data.employee_type,
         employee_status: data.employee_status,
         present_address: data.present_address,
         permanent_address: data.permanent_address,
@@ -458,7 +466,7 @@ export default function Employees() {
                   department: viewEmployee.dept,
                   designation: viewEmployee.designation,
                   joiningDate: viewEmployee.joining_date || "-",
-                  employmentType: "-",
+                  employmentType: viewEmployee.employee_type || "-",
                   status: viewEmployee.employee_status || "Active",
                   phone: viewEmployee.mobile_number,
                   email: viewEmployee.employee_email || "-",
@@ -553,6 +561,19 @@ export default function Employees() {
                   <option value="Male">পুরুষ</option>
                   <option value="Female">মহিলা</option>
                   <option value="Other">অন্যান্য</option>
+                </select>
+              </label>
+              <label className="field">
+                কর্মীর ধরন
+                <select
+                  name="employee_type"
+                  value={formState.employee_type}
+                  onChange={handleChange}
+                >
+                  <option value="">নির্বাচন করুন</option>
+                  <option value="Permanent">Permanent</option>
+                  <option value="Contractual">Contractual</option>
+                  <option value="Daily">Daily</option>
                 </select>
               </label>
               <label className="field">
