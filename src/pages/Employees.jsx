@@ -17,6 +17,8 @@ export default function Employees() {
 
   // ✅ printable employee (modal এর বাইরে hidden area তে render হবে)
   const [printEmployee, setPrintEmployee] = useState(null);
+  const [isPrintQueued, setIsPrintQueued] = useState(false);
+  const printResolveRef = useRef(null);
 
   const [searchTerm, setSearchTerm] = useState("");
   const [error, setError] = useState("");
@@ -152,6 +154,12 @@ export default function Employees() {
   const closeView = () => {
     setIsViewOpen(false);
     setViewEmployee(null);
+    setPrintEmployee(null);
+    setIsPrintQueued(false);
+    if (printResolveRef.current) {
+      printResolveRef.current();
+      printResolveRef.current = null;
+    }
   };
 
   const handleChange = (event) => {
@@ -203,20 +211,39 @@ export default function Employees() {
     documentTitle: printEmployee?.pf_number
       ? `employee-${printEmployee.pf_number}`
       : "employee-info",
-    removeAfterPrint: false
+    removeAfterPrint: false,
+    onBeforeGetContent: () => {
+      if (!viewEmployee) return undefined;
+      setPrintEmployee(viewEmployee);
+      setIsPrintQueued(true);
+      return new Promise((resolve) => {
+        printResolveRef.current = resolve;
+      });
+    },
+    onAfterPrint: () => {
+      setIsPrintQueued(false);
+      setPrintEmployee(null);
+      printResolveRef.current = null;
+    }
   });
 
   // ✅ button handler: set printable data first, then print next tick
   const handlePrintClick = () => {
     if (!viewEmployee) return;
-
-    setPrintEmployee(viewEmployee);
-
-    // next tick so hidden DOM renders properly
-    setTimeout(() => {
-      printNow();
-    }, 80);
+    printNow();
   };
+
+  useEffect(() => {
+    if (!isPrintQueued || !printEmployee) return;
+    const frame = requestAnimationFrame(() => {
+      if (printResolveRef.current) {
+        printResolveRef.current();
+        printResolveRef.current = null;
+      }
+    });
+
+    return () => cancelAnimationFrame(frame);
+  }, [isPrintQueued, printEmployee]);
 
   const handleDelete = async (empId) => {
     if (!supabase) {
