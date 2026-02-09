@@ -785,23 +785,6 @@ export default function Employees() {
 
         {loading && <p>লোড হচ্ছে...</p>}
       </section>
-      {/* ✅ Print helper CSS (এটা না দিলে hidden container print এও লুকানো থাকতে পারে) */}
-      <style>{`
-        .a4{
-          position: fixed;
-          left: -99999px;
-          top: 0;
-          width: 210mm;
-        }
-        @media print{
-          .print-hidden{ display: none !important; }
-          .a4{
-            position: static !important;
-            left: 0 !important;
-            width: auto !important;
-          }
-        }
-      `}</style>
     </div>
   );
 }
