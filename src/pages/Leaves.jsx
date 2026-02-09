@@ -31,24 +31,6 @@ export default function Leaves() {
   const [holidayError, setHolidayError] = useState("");
 
   useEffect(() => {
-    const loadRequests = async () => {
-      if (!supabase) {
-        return;
-      }
-
-      setLoadingRequests(true);
-      const { data, error } = await supabase
-        .from("leave_requests")
-        .select("id, employee_id, leave_type, start_date, end_date, status, employees(name)")
-        .order("start_date", { ascending: false });
-
-      if (!error && data) {
-        setRequests(data);
-      }
-
-      setLoadingRequests(false);
-    };
-
     const loadHolidays = async () => {
       if (!supabase) {
         return;
@@ -67,27 +49,46 @@ export default function Leaves() {
       setLoadingHolidays(false);
     };
 
-    const loadEmployees = async () => {
+    const loadEmployeesAndRequests = async () => {
       if (!supabase) {
         return;
       }
 
       setLoadingEmployees(true);
-      const { data, error } = await supabase
+      const { data: employeeData, error: employeeError } = await supabase
         .from("employees")
         .select("id, name")
         .order("name");
 
-      if (!error && data) {
-        setEmployees(data);
+      if (!employeeError && employeeData) {
+        setEmployees(employeeData);
       }
 
       setLoadingEmployees(false);
+
+      const employeeMap = new Map(
+        (employeeData ?? []).map((employee) => [employee.id, employee.name])
+      );
+
+      setLoadingRequests(true);
+      const { data, error } = await supabase
+        .from("leave_requests")
+        .select("id, employee_id, leave_type, start_date, end_date, status")
+        .order("start_date", { ascending: false });
+
+      if (!error && data) {
+        const normalized = data.map((row) => ({
+          ...row,
+          employee_name: employeeMap.get(row.employee_id) ?? "-"
+        }));
+        setRequests(normalized);
+      }
+
+      setLoadingRequests(false);
     };
 
-    loadRequests();
+    loadEmployeesAndRequests();
     loadHolidays();
-    loadEmployees();
   }, []);
 
   const resetRequestForm = () => {
@@ -197,9 +198,13 @@ export default function Leaves() {
     }
 
     if (editingRequestId) {
+      const employeeId = Number(requestForm.employee_id);
+      const employeeName =
+        employees.find((employee) => employee.id === employeeId)?.name ?? "-";
       const updated = {
         id: editingRequestId,
-        employee_id: Number(requestForm.employee_id),
+        employee_id: employeeId,
+        employee_name: employeeName,
         leave_type: requestForm.leave_type.trim(),
         start_date: requestForm.start_date,
         end_date: requestForm.end_date || null,
@@ -241,7 +246,7 @@ export default function Leaves() {
         end_date: requestForm.end_date || null,
         status: requestForm.status
       })
-      .select("id, employee_id, leave_type, start_date, end_date, status, employees(name)")
+      .select("id, employee_id, leave_type, start_date, end_date, status")
       .single();
 
     if (insertError) {
@@ -250,7 +255,9 @@ export default function Leaves() {
     }
 
     if (data) {
-      setRequests((prev) => [data, ...prev]);
+      const employeeName =
+        employees.find((employee) => employee.id === data.employee_id)?.name ?? "-";
+      setRequests((prev) => [{ ...data, employee_name: employeeName }, ...prev]);
     }
 
     resetRequestForm();
@@ -445,7 +452,7 @@ export default function Leaves() {
             ) : (
               requests.map((request) => (
                 <tr key={request.id}>
-                  <td>{request.employees?.name ?? request.employee_id ?? "-"}</td>
+                  <td>{request.employee_name ?? request.employee_id ?? "-"}</td>
                   <td>{request.leave_type}</td>
                   <td>{renderDateRange(request)}</td>
                   <td>
