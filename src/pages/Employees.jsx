@@ -17,6 +17,7 @@ export default function Employees() {
     name: "",
     pf_number: "",
     mobile_number: "",
+    employee_email: "",
     dob: "",
     nid: "",
     gender: "",
@@ -47,7 +48,7 @@ export default function Employees() {
       const { data, error } = await supabase
         .from("employees")
         .select(
-          "id, name, pf_number, mobile_number, dob, nid, gender, employee_status, present_address, permanent_address, blood_group, home_district, bank_name, ac_no, joining_date, prl_date, about, basic_salary, dept_id, desig_id, departments(name), designations(name)"
+          "id, name, pf_number, mobile_number, email, dob, nid, gender, employee_status, present_address, permanent_address, blood_group, home_district, bank_name, ac_no, joining_date, prl_date, about, basic_salary, dept_id, desig_id, departments(name), designations(name)"
         )
         .order("id", { ascending: false });
 
@@ -57,6 +58,7 @@ export default function Employees() {
           name: row.name,
           pf_number: row.pf_number,
           mobile_number: row.mobile_number,
+          employee_email: row.email,
           dob: row.dob,
           nid: row.nid,
           gender: row.gender,
@@ -122,6 +124,7 @@ export default function Employees() {
       name: "",
       pf_number: "",
       mobile_number: "",
+      employee_email: "",
       dob: "",
       nid: "",
       gender: "",
@@ -167,6 +170,7 @@ export default function Employees() {
       name: emp.name ?? "",
       pf_number: emp.pf_number ?? "",
       mobile_number: emp.mobile_number ?? "",
+      employee_email: emp.employee_email ?? "",
       dob: emp.dob ?? "",
       nid: emp.nid ?? "",
       gender: emp.gender ?? "",
@@ -249,6 +253,7 @@ export default function Employees() {
         name: formState.name.trim(),
         pf_number: formState.pf_number.trim(),
         mobile_number: formState.mobile_number.trim(),
+        employee_email: formState.employee_email.trim(),
         dob: formState.dob || null,
         nid: formState.nid.trim(),
         gender: formState.gender.trim(),
@@ -275,6 +280,7 @@ export default function Employees() {
           name: updated.name,
           pf_number: updated.pf_number,
           mobile_number: updated.mobile_number || null,
+          email: updated.employee_email || null,
           dob: updated.dob || null,
           nid: updated.nid || null,
           gender: updated.gender || null,
@@ -313,6 +319,7 @@ export default function Employees() {
         name: formState.name.trim(),
         pf_number: formState.pf_number.trim(),
         mobile_number: formState.mobile_number.trim() || null,
+        email: formState.employee_email.trim() || null,
         dob: formState.dob || null,
         nid: formState.nid.trim() || null,
         gender: formState.gender.trim() || null,
@@ -331,7 +338,7 @@ export default function Employees() {
         desig_id: designationIdValue
       })
       .select(
-        "id, name, pf_number, mobile_number, dob, nid, gender, employee_status, present_address, permanent_address, blood_group, home_district, bank_name, ac_no, joining_date, prl_date, about, basic_salary, dept_id, desig_id, departments(name), designations(name)"
+        "id, name, pf_number, mobile_number, email, dob, nid, gender, employee_status, present_address, permanent_address, blood_group, home_district, bank_name, ac_no, joining_date, prl_date, about, basic_salary, dept_id, desig_id, departments(name), designations(name)"
       )
       .single();
 
@@ -346,6 +353,7 @@ export default function Employees() {
         name: data.name,
         pf_number: data.pf_number,
         mobile_number: data.mobile_number,
+        employee_email: data.email,
         dob: data.dob,
         nid: data.nid,
         gender: data.gender,
@@ -381,6 +389,7 @@ export default function Employees() {
       emp.name,
       emp.pf_number,
       emp.mobile_number,
+      emp.employee_email,
       emp.dept,
       emp.designation,
       emp.blood_group,
@@ -452,7 +461,7 @@ export default function Employees() {
                   employmentType: "-",
                   status: viewEmployee.employee_status || "Active",
                   phone: viewEmployee.mobile_number,
-                  email: "-",
+                  email: viewEmployee.employee_email || "-",
                   dob: viewEmployee.dob || "-",
                   nid: viewEmployee.nid || "-",
                   gender: viewEmployee.gender || "-",
@@ -507,6 +516,16 @@ export default function Employees() {
                   value={formState.mobile_number}
                   onChange={handleChange}
                   placeholder="01XXXXXXXXX"
+                />
+              </label>
+              <label className="field">
+                ইমেইল
+                <input
+                  name="employee_email"
+                  type="email"
+                  value={formState.employee_email}
+                  onChange={handleChange}
+                  placeholder="name@example.com"
                 />
               </label>
               <label className="field">
