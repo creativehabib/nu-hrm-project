@@ -5,6 +5,7 @@ import Designations from "./pages/Designations.jsx";
 import Employees from "./pages/Employees.jsx";
 import Attendance from "./pages/Attendance.jsx";
 import Leaves from "./pages/Leaves.jsx";
+import SalarySheet from "./pages/SalarySheet.jsx";
 
 const navItems = [
   { path: "/", label: "ড্যাশবোর্ড" },
@@ -12,7 +13,8 @@ const navItems = [
   { path: "/designations", label: "পদবী" },
   { path: "/employees", label: "কর্মী" },
   { path: "/attendance", label: "হাজিরা" },
-  { path: "/leaves", label: "ছুটি" }
+  { path: "/leaves", label: "ছুটি" },
+  { path: "/salary-sheet", label: "মাসিক বেতন শিট" }
 ];
 
 export default function App() {
@@ -39,6 +41,7 @@ export default function App() {
           <Route path="/employees" element={<Employees />} />
           <Route path="/attendance" element={<Attendance />} />
           <Route path="/leaves" element={<Leaves />} />
+          <Route path="/salary-sheet" element={<SalarySheet />} />
         </Routes>
       </main>
     </div>
