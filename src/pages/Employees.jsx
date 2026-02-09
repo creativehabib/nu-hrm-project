@@ -8,10 +8,8 @@ export default function Employees() {
   const [departments, setDepartments] = useState([]);
   const [designations, setDesignations] = useState([]);
   const [loading, setLoading] = useState(false);
-
   const [editingId, setEditingId] = useState(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
-
   const [isViewOpen, setIsViewOpen] = useState(false);
   const [viewEmployee, setViewEmployee] = useState(null);
 
@@ -21,8 +19,6 @@ export default function Employees() {
   const printResolveRef = useRef(null);
 
   const [searchTerm, setSearchTerm] = useState("");
-  const [error, setError] = useState("");
-
   const [formState, setFormState] = useState({
     name: "",
     pf_number: "",
@@ -46,13 +42,14 @@ export default function Employees() {
     dept_id: "",
     basic_salary: ""
   });
-
-  // ✅ print ref (hidden area)
+  const [error, setError] = useState("");
   const printRef = useRef(null);
 
   useEffect(() => {
     const loadEmployees = async () => {
-      if (!supabase) return;
+      if (!supabase) {
+        return;
+      }
 
       setLoading(true);
       const { data, error } = await supabase
@@ -96,21 +93,33 @@ export default function Employees() {
     };
 
     const loadDepartments = async () => {
-      if (!supabase) return;
+      if (!supabase) {
+        return;
+      }
+
       const { data, error } = await supabase
         .from("departments")
         .select("id, name")
         .order("name");
-      if (!error && data) setDepartments(data);
+
+      if (!error && data) {
+        setDepartments(data);
+      }
     };
 
     const loadDesignations = async () => {
-      if (!supabase) return;
+      if (!supabase) {
+        return;
+      }
+
       const { data, error } = await supabase
         .from("designations")
         .select("id, name")
         .order("name");
-      if (!error && data) setDesignations(data);
+
+      if (!error && data) {
+        setDesignations(data);
+      }
     };
 
     loadEmployees();
@@ -205,8 +214,7 @@ export default function Employees() {
     setIsViewOpen(true);
   };
 
-  // ✅ react-to-print (prints hidden area)
-  const printNow = useReactToPrint({
+  const handlePrint = useReactToPrint({
     content: () => printRef.current,
     documentTitle: printEmployee?.pf_number
       ? `employee-${printEmployee.pf_number}`
@@ -273,10 +281,10 @@ export default function Employees() {
     }
 
     setError("");
-
-    const departmentIdValue = formState.dept_id ? Number(formState.dept_id) : null;
+    const departmentIdValue = formState.dept_id
+      ? Number(formState.dept_id)
+      : null;
     const designationIdValue = formState.desig_id ? Number(formState.desig_id) : null;
-
     const departmentName =
       departments.find((dept) => dept.id === departmentIdValue)?.name ?? "-";
     const designationName =
@@ -287,7 +295,6 @@ export default function Employees() {
       return;
     }
 
-    // ✅ UPDATE
     if (editingId) {
       const updated = {
         id: editingId,
@@ -356,7 +363,6 @@ export default function Employees() {
       return;
     }
 
-    // ✅ INSERT
     const { data, error: insertError } = await supabase
       .from("employees")
       .insert({
@@ -427,7 +433,10 @@ export default function Employees() {
 
   const normalizedSearch = searchTerm.trim().toLowerCase();
   const filteredEmployees = employees.filter((emp) => {
-    if (!normalizedSearch) return true;
+    if (!normalizedSearch) {
+      return true;
+    }
+
     const fields = [
       emp.name,
       emp.pf_number,
@@ -442,48 +451,12 @@ export default function Employees() {
       .filter(Boolean)
       .join(" ")
       .toLowerCase();
+
     return fields.includes(normalizedSearch);
   });
 
   return (
     <div>
-      {/* ✅ Hidden Print Container (modal এর বাইরে) */}
-      <div className="a4">
-        <div ref={printRef}>
-          {printEmployee && (
-            <EmployeeInfoA4
-              company={{
-                name: "National University",
-                address: "Bangladesh",
-                phone: "+8801XXXXXXXXX",
-                email: "registrar@nu.ac.bd",
-                logoUrl: ""
-              }}
-              employee={{
-                id: printEmployee.pf_number || printEmployee.id,
-                name: printEmployee.name,
-                department: printEmployee.dept,
-                designation: printEmployee.designation,
-                joiningDate: printEmployee.joining_date || "-",
-                employmentType: printEmployee.employee_type || "-",
-                status: printEmployee.employee_status || "Active",
-                phone: printEmployee.mobile_number || "-",
-                email: printEmployee.employee_email || "-",
-                dob: printEmployee.dob || "-",
-                nid: printEmployee.nid || "-",
-                gender: printEmployee.gender || "-",
-                bloodGroup: printEmployee.blood_group || "-",
-                presentAddress: printEmployee.present_address || "-",
-                permanentAddress: printEmployee.permanent_address || "-",
-                bankName: printEmployee.bank_name || "-",
-                bankAccount: printEmployee.ac_no || "-",
-                bankBranch: "-"
-              }}
-            />
-          )}
-        </div>
-      </div>
-
       <header className="page-header">
         <div>
           <h2>কর্মী তালিকা</h2>
@@ -509,7 +482,7 @@ export default function Employees() {
                 <button
                   className="button secondary"
                   type="button"
-                  onClick={handlePrintClick}
+                  onClick={handlePrint}
                 >
                   প্রিন্ট / পিডিএফ
                 </button>
@@ -518,9 +491,7 @@ export default function Employees() {
                 </button>
               </div>
             </header>
-
-            {/* Viewer (screen) */}
-            <section>
+            <section ref={printRef}>
               <EmployeeInfoA4
                 company={{
                   name: "National University",
@@ -537,14 +508,14 @@ export default function Employees() {
                   joiningDate: viewEmployee.joining_date || "-",
                   employmentType: viewEmployee.employee_type || "-",
                   status: viewEmployee.employee_status || "Active",
-                  phone: viewEmployee.mobile_number || "-",
+                  phone: viewEmployee.mobile_number,
                   email: viewEmployee.employee_email || "-",
                   dob: viewEmployee.dob || "-",
                   nid: viewEmployee.nid || "-",
                   gender: viewEmployee.gender || "-",
-                  bloodGroup: viewEmployee.blood_group || "-",
-                  presentAddress: viewEmployee.present_address || "-",
-                  permanentAddress: viewEmployee.permanent_address || "-",
+                  bloodGroup: viewEmployee.blood_group,
+                  presentAddress: viewEmployee.present_address,
+                  permanentAddress: viewEmployee.permanent_address,
                   bankName: viewEmployee.bank_name || "-",
                   bankAccount: viewEmployee.ac_no || "-",
                   bankBranch: "-"
@@ -555,7 +526,6 @@ export default function Employees() {
         </div>
       )}
 
-      {/* ✅ আপনার isFormOpen form অংশ (আপনার আগেরটাই) */}
       {isFormOpen && (
         <div className="modal-overlay" role="presentation">
           <div className="modal card" role="dialog" aria-modal="true">
@@ -568,9 +538,7 @@ export default function Employees() {
                 বন্ধ করুন
               </button>
             </header>
-
             <form className="form-grid" onSubmit={handleSubmit}>
-              {/* --- আপনার আগের form fields 그대로 রাখলাম --- */}
               <label className="field">
                 নাম
                 <input
@@ -580,7 +548,6 @@ export default function Employees() {
                   placeholder="কর্মীর নাম"
                 />
               </label>
-
               <label className="field">
                 PF নম্বর
                 <input
@@ -590,7 +557,6 @@ export default function Employees() {
                   placeholder="PF-1005"
                 />
               </label>
-
               <label className="field">
                 মোবাইল
                 <input
@@ -600,7 +566,6 @@ export default function Employees() {
                   placeholder="01XXXXXXXXX"
                 />
               </label>
-
               <label className="field">
                 ইমেইল
                 <input
@@ -611,17 +576,24 @@ export default function Employees() {
                   placeholder="name@example.com"
                 />
               </label>
-
               <label className="field">
                 জন্মতারিখ
-                <input name="dob" type="date" value={formState.dob} onChange={handleChange} />
+                <input
+                  name="dob"
+                  type="date"
+                  value={formState.dob}
+                  onChange={handleChange}
+                />
               </label>
-
               <label className="field">
                 NID
-                <input name="nid" value={formState.nid} onChange={handleChange} placeholder="NID নম্বর" />
+                <input
+                  name="nid"
+                  value={formState.nid}
+                  onChange={handleChange}
+                  placeholder="NID নম্বর"
+                />
               </label>
-
               <label className="field">
                 লিঙ্গ
                 <select name="gender" value={formState.gender} onChange={handleChange}>
@@ -631,32 +603,41 @@ export default function Employees() {
                   <option value="Other">অন্যান্য</option>
                 </select>
               </label>
-
               <label className="field">
                 কর্মীর ধরন
-                <select name="employee_type" value={formState.employee_type} onChange={handleChange}>
+                <select
+                  name="employee_type"
+                  value={formState.employee_type}
+                  onChange={handleChange}
+                >
                   <option value="">নির্বাচন করুন</option>
                   <option value="Permanent">Permanent</option>
                   <option value="Contractual">Contractual</option>
                   <option value="Daily">Daily</option>
                 </select>
               </label>
-
               <label className="field">
                 কর্মীর স্ট্যাটাস
-                <select name="employee_status" value={formState.employee_status} onChange={handleChange}>
+                <select
+                  name="employee_status"
+                  value={formState.employee_status}
+                  onChange={handleChange}
+                >
                   <option value="">নির্বাচন করুন</option>
                   <option value="Active">Active</option>
                   <option value="Inactive">Inactive</option>
                   <option value="On Leave">On Leave</option>
                 </select>
               </label>
-
               <label className="field">
                 রক্তের গ্রুপ
-                <input name="blood_group" value={formState.blood_group} onChange={handleChange} placeholder="A+" />
+                <input
+                  name="blood_group"
+                  value={formState.blood_group}
+                  onChange={handleChange}
+                  placeholder="A+"
+                />
               </label>
-
               <label className="field">
                 বিভাগ
                 <select name="dept_id" value={formState.dept_id} onChange={handleChange}>
@@ -668,7 +649,6 @@ export default function Employees() {
                   ))}
                 </select>
               </label>
-
               <label className="field">
                 পদবী
                 <select name="desig_id" value={formState.desig_id} onChange={handleChange}>
@@ -680,52 +660,91 @@ export default function Employees() {
                   ))}
                 </select>
               </label>
-
               <label className="field">
                 হোম ডিস্ট্রিক্ট
-                <input name="home_district" value={formState.home_district} onChange={handleChange} placeholder="হোম ডিস্ট্রিক্ট" />
+                <input
+                  name="home_district"
+                  value={formState.home_district}
+                  onChange={handleChange}
+                  placeholder="হোম ডিস্ট্রিক্ট"
+                />
               </label>
-
               <label className="field">
                 বেসিক বেতন
-                <input name="basic_salary" type="number" value={formState.basic_salary} onChange={handleChange} placeholder="35000" />
+                <input
+                  name="basic_salary"
+                  type="number"
+                  value={formState.basic_salary}
+                  onChange={handleChange}
+                  placeholder="35000"
+                />
               </label>
-
               <label className="field">
                 ব্যাংকের নাম
-                <input name="bank_name" value={formState.bank_name} onChange={handleChange} placeholder="ব্যাংকের নাম" />
+                <input
+                  name="bank_name"
+                  value={formState.bank_name}
+                  onChange={handleChange}
+                  placeholder="ব্যাংকের নাম"
+                />
               </label>
-
               <label className="field">
                 অ্যাকাউন্ট নম্বর
-                <input name="ac_no" value={formState.ac_no} onChange={handleChange} placeholder="0000000000" />
+                <input
+                  name="ac_no"
+                  value={formState.ac_no}
+                  onChange={handleChange}
+                  placeholder="0000000000"
+                />
               </label>
-
               <label className="field">
                 যোগদানের তারিখ
-                <input name="joining_date" type="date" value={formState.joining_date} onChange={handleChange} />
+                <input
+                  name="joining_date"
+                  type="date"
+                  value={formState.joining_date}
+                  onChange={handleChange}
+                />
               </label>
-
               <label className="field">
                 PRL তারিখ
-                <input name="prl_date" type="date" value={formState.prl_date} onChange={handleChange} />
+                <input
+                  name="prl_date"
+                  type="date"
+                  value={formState.prl_date}
+                  onChange={handleChange}
+                />
               </label>
-
               <label className="field">
                 বর্তমান ঠিকানা
-                <textarea name="present_address" value={formState.present_address} onChange={handleChange} placeholder="বর্তমান ঠিকানা" rows={2} />
+                <textarea
+                  name="present_address"
+                  value={formState.present_address}
+                  onChange={handleChange}
+                  placeholder="বর্তমান ঠিকানা"
+                  rows={2}
+                />
               </label>
-
               <label className="field">
                 স্থায়ী ঠিকানা
-                <textarea name="permanent_address" value={formState.permanent_address} onChange={handleChange} placeholder="স্থায়ী ঠিকানা" rows={2} />
+                <textarea
+                  name="permanent_address"
+                  value={formState.permanent_address}
+                  onChange={handleChange}
+                  placeholder="স্থায়ী ঠিকানা"
+                  rows={2}
+                />
               </label>
-
               <label className="field field-full">
                 About
-                <textarea name="about" value={formState.about} onChange={handleChange} placeholder="কর্মীর সংক্ষিপ্ত তথ্য" rows={3} />
+                <textarea
+                  name="about"
+                  value={formState.about}
+                  onChange={handleChange}
+                  placeholder="কর্মীর সংক্ষিপ্ত তথ্য"
+                  rows={3}
+                />
               </label>
-
               <div className="field">
                 <span>অ্যাকশন</span>
                 <div className="inline-actions">
@@ -738,7 +757,6 @@ export default function Employees() {
                 </div>
               </div>
             </form>
-
             {error && <p className="form-error">{error}</p>}
           </div>
         </div>
@@ -748,7 +766,9 @@ export default function Employees() {
         <div className="table-toolbar">
           <div className="employee-count" aria-live="polite">
             <span>মোট কর্মী: {employees.length}</span>
-            {normalizedSearch && <span>মিলে: {filteredEmployees.length}</span>}
+            {normalizedSearch && (
+              <span>মিলে: {filteredEmployees.length}</span>
+            )}
           </div>
           <label className="field">
             <span>লাইভ সার্চ</span>
@@ -760,7 +780,6 @@ export default function Employees() {
             />
           </label>
         </div>
-
         <table className="table">
           <thead>
             <tr>
@@ -793,13 +812,25 @@ export default function Employees() {
                   <td>{emp.mobile_number || "-"}</td>
                   <td>
                     <div className="inline-actions">
-                      <button className="button secondary" type="button" onClick={() => handleView(emp)}>
+                      <button
+                        className="button secondary"
+                        type="button"
+                        onClick={() => handleView(emp)}
+                      >
                         ভিউ
                       </button>
-                      <button className="button secondary" type="button" onClick={() => handleEdit(emp)}>
+                      <button
+                        className="button secondary"
+                        type="button"
+                        onClick={() => handleEdit(emp)}
+                      >
                         সম্পাদনা
                       </button>
-                      <button className="button danger" type="button" onClick={() => handleDelete(emp.id)}>
+                      <button
+                        className="button danger"
+                        type="button"
+                        onClick={() => handleDelete(emp.id)}
+                      >
                         মুছুন
                       </button>
                     </div>
@@ -809,7 +840,6 @@ export default function Employees() {
             )}
           </tbody>
         </table>
-
         {loading && <p>লোড হচ্ছে...</p>}
       </section>
     </div>
