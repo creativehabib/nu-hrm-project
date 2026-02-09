@@ -421,7 +421,7 @@ export default function Employees() {
   return (
     <div>
       {/* ✅ Hidden Print Container (modal এর বাইরে) */}
-      <div className="print-area">
+      <div className="a4">
         <div ref={printRef}>
           {printEmployee && (
             <EmployeeInfoA4
@@ -785,24 +785,6 @@ export default function Employees() {
 
         {loading && <p>লোড হচ্ছে...</p>}
       </section>
-
-      {/* ✅ Print helper CSS (এটা না দিলে hidden container print এও লুকানো থাকতে পারে) */}
-      <style>{`
-        .print-area{
-          position: fixed;
-          left: -99999px;
-          top: 0;
-          width: 210mm;
-        }
-        @media print{
-          .print-hidden{ display: none !important; }
-          .print-area{
-            position: static !important;
-            left: 0 !important;
-            width: auto !important;
-          }
-        }
-      `}</style>
     </div>
   );
 }
