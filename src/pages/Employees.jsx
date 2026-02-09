@@ -12,6 +12,12 @@ export default function Employees() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isViewOpen, setIsViewOpen] = useState(false);
   const [viewEmployee, setViewEmployee] = useState(null);
+
+  // ✅ printable employee (modal এর বাইরে hidden area তে render হবে)
+  const [printEmployee, setPrintEmployee] = useState(null);
+  const [isPrintQueued, setIsPrintQueued] = useState(false);
+  const printResolveRef = useRef(null);
+
   const [searchTerm, setSearchTerm] = useState("");
   const [formState, setFormState] = useState({
     name: "",
@@ -157,6 +163,12 @@ export default function Employees() {
   const closeView = () => {
     setIsViewOpen(false);
     setViewEmployee(null);
+    setPrintEmployee(null);
+    setIsPrintQueued(false);
+    if (printResolveRef.current) {
+      printResolveRef.current();
+      printResolveRef.current = null;
+    }
   };
 
   const handleChange = (event) => {
@@ -204,10 +216,42 @@ export default function Employees() {
 
   const handlePrint = useReactToPrint({
     content: () => printRef.current,
-    documentTitle: viewEmployee?.pf_number
-      ? `employee-${viewEmployee.pf_number}`
-      : "employee-info"
+    documentTitle: printEmployee?.pf_number
+      ? `employee-${printEmployee.pf_number}`
+      : "employee-info",
+    removeAfterPrint: false,
+    onBeforeGetContent: () => {
+      if (!viewEmployee) return undefined;
+      setPrintEmployee(viewEmployee);
+      setIsPrintQueued(true);
+      return new Promise((resolve) => {
+        printResolveRef.current = resolve;
+      });
+    },
+    onAfterPrint: () => {
+      setIsPrintQueued(false);
+      setPrintEmployee(null);
+      printResolveRef.current = null;
+    }
   });
+
+  // ✅ button handler: set printable data first, then print next tick
+  const handlePrintClick = () => {
+    if (!viewEmployee) return;
+    printNow();
+  };
+
+  useEffect(() => {
+    if (!isPrintQueued || !printEmployee) return;
+    const frame = requestAnimationFrame(() => {
+      if (printResolveRef.current) {
+        printResolveRef.current();
+        printResolveRef.current = null;
+      }
+    });
+
+    return () => cancelAnimationFrame(frame);
+  }, [isPrintQueued, printEmployee]);
 
   const handleDelete = async (empId) => {
     if (!supabase) {
