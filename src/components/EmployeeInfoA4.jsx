@@ -24,9 +24,11 @@ export default function EmployeeInfoA4({
     bloodGroup: "O+",
     presentAddress: "Dhaka, Bangladesh",
     permanentAddress: "Dhaka, Bangladesh",
+    homeDistrict: "Dhaka",
     bankName: "ABC Bank",
     bankAccount: "000000000000",
-    bankBranch: "Dhaka"
+    bankBranch: "Dhaka",
+    basicSalary: "35000"
   }
 }) {
   const infoRows = [
@@ -50,10 +52,12 @@ export default function EmployeeInfoA4({
 
   const addressRows = [
     { label: "Present Address", value: employee.presentAddress },
-    { label: "Permanent Address", value: employee.permanentAddress }
+    { label: "Permanent Address", value: employee.permanentAddress },
+    { label: "Home District", value: employee.homeDistrict }
   ];
 
   const payrollRows = [
+    { label: "Basic Salary", value: employee.basicSalary },
     { label: "Bank Name", value: employee.bankName },
     { label: "Account No.", value: employee.bankAccount },
     { label: "Branch", value: employee.bankBranch }
