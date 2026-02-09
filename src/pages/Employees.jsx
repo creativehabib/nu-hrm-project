@@ -421,7 +421,7 @@ export default function Employees() {
   return (
     <div>
       {/* ✅ Hidden Print Container (modal এর বাইরে) */}
-      <div className="a4">
+      <div className="print-area">
         <div ref={printRef}>
           {printEmployee && (
             <EmployeeInfoA4
