@@ -325,16 +325,26 @@ body {
     position: static;
     width: 210mm;
     height: 297mm;
-    padding: 12mm;
+    padding: 8mm;
+    margin: 0;
     border: none;
     border-radius: 0;
     box-shadow: none;
     overflow: hidden;
     page-break-after: avoid;
+    break-after: avoid;
+    font-size: 12px;
   }
 
   .print-hidden {
     display: none !important;
+  }
+
+  .print-section,
+  .print-table,
+  .print-table tr {
+    page-break-inside: avoid;
+    break-inside: avoid;
   }
 }
 

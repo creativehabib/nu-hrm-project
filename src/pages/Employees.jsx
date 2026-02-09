@@ -1,5 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useReactToPrint } from "react-to-print";
 import { supabase } from "../supabaseClient";
+import EmployeeInfoA4 from "../components/EmployeeInfoA4";
 
 export default function Employees() {
   const [employees, setEmployees] = useState([]);
@@ -25,6 +27,7 @@ export default function Employees() {
     basic_salary: ""
   });
   const [error, setError] = useState("");
+  const printRef = useRef(null);
 
   useEffect(() => {
     const loadEmployees = async () => {
@@ -158,6 +161,13 @@ export default function Employees() {
     setViewEmployee(emp);
     setIsViewOpen(true);
   };
+
+  const handlePrint = useReactToPrint({
+    content: () => printRef.current,
+    documentTitle: viewEmployee?.pf_number
+      ? `employee-${viewEmployee.pf_number}`
+      : "employee-info"
+  });
 
   const handleDelete = async (empId) => {
     if (!supabase) {
@@ -350,7 +360,7 @@ export default function Employees() {
                 <button
                   className="button secondary"
                   type="button"
-                  onClick={() => window.print()}
+                  onClick={handlePrint}
                 >
                   প্রিন্ট / পিডিএফ
                 </button>
@@ -359,54 +369,36 @@ export default function Employees() {
                 </button>
               </div>
             </header>
-            <section className="print-area">
-              <div className="print-header">
-                <div>
-                  <h2>কর্মীর প্রোফাইল</h2>
-                  <p>কর্মী আইডি: {viewEmployee.id}</p>
-                </div>
-                <span className="badge success">Active</span>
-              </div>
-              <div className="print-section">
-                <h3>{viewEmployee.name}</h3>
-                <p>PF নম্বর: {viewEmployee.pf_number}</p>
-              </div>
-              <div className="print-section">
-                <table className="table print-table">
-                  <tbody>
-                    <tr>
-                      <th>বিভাগ</th>
-                      <td>{viewEmployee.dept || "-"}</td>
-                      <th>পদবী</th>
-                      <td>{viewEmployee.designation || "-"}</td>
-                    </tr>
-                    <tr>
-                      <th>মোবাইল</th>
-                      <td>{viewEmployee.mobile_number || "-"}</td>
-                      <th>বেসিক বেতন</th>
-                      <td>{viewEmployee.basic_salary || 0}</td>
-                    </tr>
-                    <tr>
-                      <th>রক্তের গ্রুপ</th>
-                      <td>{viewEmployee.blood_group || "-"}</td>
-                      <th>হোম ডিস্ট্রিক্ট</th>
-                      <td>{viewEmployee.home_district || "-"}</td>
-                    </tr>
-                    <tr>
-                      <th>বর্তমান ঠিকানা</th>
-                      <td colSpan={3}>{viewEmployee.present_address || "-"}</td>
-                    </tr>
-                    <tr>
-                      <th>স্থায়ী ঠিকানা</th>
-                      <td colSpan={3}>{viewEmployee.permanent_address || "-"}</td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-              <div className="print-section">
-                <strong>About:</strong>
-                <p>{viewEmployee.about || "কোনো তথ্য নেই।"}</p>
-              </div>
+            <section ref={printRef}>
+              <EmployeeInfoA4
+                company={{
+                  name: "Nu HRM Project",
+                  address: "House 00, Road 00, Dhaka-1200",
+                  phone: "+8801XXXXXXXXX",
+                  email: "hr@company.com",
+                  logoUrl: ""
+                }}
+                employee={{
+                  id: viewEmployee.pf_number || viewEmployee.id,
+                  name: viewEmployee.name,
+                  department: viewEmployee.dept,
+                  designation: viewEmployee.designation,
+                  joiningDate: "-",
+                  employmentType: "-",
+                  status: "Active",
+                  phone: viewEmployee.mobile_number,
+                  email: "-",
+                  dob: "-",
+                  nid: "-",
+                  gender: "-",
+                  bloodGroup: viewEmployee.blood_group,
+                  presentAddress: viewEmployee.present_address,
+                  permanentAddress: viewEmployee.permanent_address,
+                  bankName: "-",
+                  bankAccount: "-",
+                  bankBranch: "-"
+                }}
+              />
             </section>
           </div>
         </div>
