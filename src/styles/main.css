@@ -317,7 +317,9 @@ body {
   }
 
   .print-area,
-  .print-area * {
+  .print-area *,
+  .a4,
+  .a4 * {
     visibility: visible;
   }
 
