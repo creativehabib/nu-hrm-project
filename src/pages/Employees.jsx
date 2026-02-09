@@ -434,10 +434,6 @@ export default function Employees() {
         <div className="modal-overlay" role="presentation">
           <div className="modal card" role="dialog" aria-modal="true">
             <header className="modal-header print-hidden">
-              <div>
-                <h3>কর্মীর বিস্তারিত</h3>
-                <p>A4 পেইজে দেখুন, প্রিন্ট বা পিডিএফ হিসেবে সংরক্ষণ করুন।</p>
-              </div>
               <div className="inline-actions">
                 <button
                   className="button secondary"
@@ -451,13 +447,13 @@ export default function Employees() {
                 </button>
               </div>
             </header>
-            <section ref={printRef} className="print-area">
+            <section ref={printRef}>
               <EmployeeInfoA4
                 company={{
-                  name: "Nu HRM Project",
-                  address: "House 00, Road 00, Dhaka-1200",
+                  name: "National University",
+                  address: "Bangladesh",
                   phone: "+8801XXXXXXXXX",
-                  email: "hr@company.com",
+                  email: "registrar@nu.ac.bd",
                   logoUrl: ""
                 }}
                 employee={{
