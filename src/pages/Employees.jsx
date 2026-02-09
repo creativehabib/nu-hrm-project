@@ -1,5 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useReactToPrint } from "react-to-print";
 import { supabase } from "../supabaseClient";
+import EmployeeInfoA4 from "../components/EmployeeInfoA4";
 
 export default function Employees() {
   const [employees, setEmployees] = useState([]);
@@ -8,6 +10,8 @@ export default function Employees() {
   const [loading, setLoading] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const [isViewOpen, setIsViewOpen] = useState(false);
+  const [viewEmployee, setViewEmployee] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [formState, setFormState] = useState({
     name: "",
@@ -23,6 +27,7 @@ export default function Employees() {
     basic_salary: ""
   });
   const [error, setError] = useState("");
+  const printRef = useRef(null);
 
   useEffect(() => {
     const loadEmployees = async () => {
@@ -119,6 +124,11 @@ export default function Employees() {
     setIsFormOpen(false);
   };
 
+  const closeView = () => {
+    setIsViewOpen(false);
+    setViewEmployee(null);
+  };
+
   const handleChange = (event) => {
     const { name, value } = event.target;
     setFormState((prev) => ({ ...prev, [name]: value }));
@@ -146,6 +156,18 @@ export default function Employees() {
     setError("");
     setIsFormOpen(true);
   };
+
+  const handleView = (emp) => {
+    setViewEmployee(emp);
+    setIsViewOpen(true);
+  };
+
+  const handlePrint = useReactToPrint({
+    content: () => printRef.current,
+    documentTitle: viewEmployee?.pf_number
+      ? `employee-${viewEmployee.pf_number}`
+      : "employee-info"
+  });
 
   const handleDelete = async (empId) => {
     if (!supabase) {
@@ -325,6 +347,62 @@ export default function Employees() {
           নতুন কর্মী
         </button>
       </header>
+
+      {isViewOpen && viewEmployee && (
+        <div className="modal-overlay" role="presentation">
+          <div className="modal card" role="dialog" aria-modal="true">
+            <header className="modal-header print-hidden">
+              <div>
+                <h3>কর্মীর বিস্তারিত</h3>
+                <p>A4 পেইজে দেখুন, প্রিন্ট বা পিডিএফ হিসেবে সংরক্ষণ করুন।</p>
+              </div>
+              <div className="inline-actions">
+                <button
+                  className="button secondary"
+                  type="button"
+                  onClick={handlePrint}
+                >
+                  প্রিন্ট / পিডিএফ
+                </button>
+                <button className="button secondary" type="button" onClick={closeView}>
+                  বন্ধ করুন
+                </button>
+              </div>
+            </header>
+            <section ref={printRef}>
+              <EmployeeInfoA4
+                company={{
+                  name: "Nu HRM Project",
+                  address: "House 00, Road 00, Dhaka-1200",
+                  phone: "+8801XXXXXXXXX",
+                  email: "hr@company.com",
+                  logoUrl: ""
+                }}
+                employee={{
+                  id: viewEmployee.pf_number || viewEmployee.id,
+                  name: viewEmployee.name,
+                  department: viewEmployee.dept,
+                  designation: viewEmployee.designation,
+                  joiningDate: "-",
+                  employmentType: "-",
+                  status: "Active",
+                  phone: viewEmployee.mobile_number,
+                  email: "-",
+                  dob: "-",
+                  nid: "-",
+                  gender: "-",
+                  bloodGroup: viewEmployee.blood_group,
+                  presentAddress: viewEmployee.present_address,
+                  permanentAddress: viewEmployee.permanent_address,
+                  bankName: "-",
+                  bankAccount: "-",
+                  bankBranch: "-"
+                }}
+              />
+            </section>
+          </div>
+        </div>
+      )}
 
       {isFormOpen && (
         <div className="modal-overlay" role="presentation">
@@ -513,6 +591,13 @@ export default function Employees() {
                   <td>{emp.mobile_number || "-"}</td>
                   <td>
                     <div className="inline-actions">
+                      <button
+                        className="button secondary"
+                        type="button"
+                        onClick={() => handleView(emp)}
+                      >
+                        ভিউ
+                      </button>
                       <button
                         className="button secondary"
                         type="button"
