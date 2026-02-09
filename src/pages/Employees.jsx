@@ -516,9 +516,11 @@ export default function Employees() {
                   bloodGroup: viewEmployee.blood_group,
                   presentAddress: viewEmployee.present_address,
                   permanentAddress: viewEmployee.permanent_address,
+                  homeDistrict: viewEmployee.home_district || "-",
                   bankName: viewEmployee.bank_name || "-",
                   bankAccount: viewEmployee.ac_no || "-",
-                  bankBranch: "-"
+                  bankBranch: "-",
+                  basicSalary: viewEmployee.basic_salary ?? "-"
                 }}
               />
             </section>
