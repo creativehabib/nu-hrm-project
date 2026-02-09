@@ -451,7 +451,7 @@ export default function Employees() {
                 </button>
               </div>
             </header>
-            <section ref={printRef}>
+            <section ref={printRef} className="print-area">
               <EmployeeInfoA4
                 company={{
                   name: "Nu HRM Project",
