@@ -107,7 +107,7 @@ export default function EmployeeInfoA4({
         </div>
       </header>
 
-      <main className="content">
+      <main>
         <div className="grid2">
           <Section title="Job Information" rows={infoRows} />
           <Section title="Personal Information" rows={personalRows} />
