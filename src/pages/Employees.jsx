@@ -17,10 +17,20 @@ export default function Employees() {
     name: "",
     pf_number: "",
     mobile_number: "",
+    employee_email: "",
+    dob: "",
+    nid: "",
+    gender: "",
+    employee_type: "",
+    employee_status: "",
     present_address: "",
     permanent_address: "",
     blood_group: "",
     home_district: "",
+    bank_name: "",
+    ac_no: "",
+    joining_date: "",
+    prl_date: "",
     about: "",
     desig_id: "",
     dept_id: "",
@@ -39,7 +49,7 @@ export default function Employees() {
       const { data, error } = await supabase
         .from("employees")
         .select(
-          "id, name, pf_number, mobile_number, present_address, permanent_address, blood_group, home_district, about, basic_salary, dept_id, desig_id, departments(name), designations(name)"
+          "id, name, pf_number, mobile_number, email, dob, nid, gender, employee_type, employee_status, present_address, permanent_address, blood_group, home_district, bank_name, ac_no, joining_date, prl_date, about, basic_salary, dept_id, desig_id, departments(name), designations(name)"
         )
         .order("id", { ascending: false });
 
@@ -49,10 +59,20 @@ export default function Employees() {
           name: row.name,
           pf_number: row.pf_number,
           mobile_number: row.mobile_number,
+          employee_email: row.email,
+          dob: row.dob,
+          nid: row.nid,
+          gender: row.gender,
+          employee_type: row.employee_type,
+          employee_status: row.employee_status,
           present_address: row.present_address,
           permanent_address: row.permanent_address,
           blood_group: row.blood_group,
           home_district: row.home_district,
+          bank_name: row.bank_name,
+          ac_no: row.ac_no,
+          joining_date: row.joining_date,
+          prl_date: row.prl_date,
           about: row.about,
           designation: row.designations?.name ?? "-",
           dept: row.departments?.name ?? "-",
@@ -106,10 +126,20 @@ export default function Employees() {
       name: "",
       pf_number: "",
       mobile_number: "",
+      employee_email: "",
+      dob: "",
+      nid: "",
+      gender: "",
+      employee_type: "",
+      employee_status: "",
       present_address: "",
       permanent_address: "",
       blood_group: "",
       home_district: "",
+      bank_name: "",
+      ac_no: "",
+      joining_date: "",
+      prl_date: "",
       about: "",
       desig_id: "",
       dept_id: "",
@@ -143,10 +173,20 @@ export default function Employees() {
       name: emp.name ?? "",
       pf_number: emp.pf_number ?? "",
       mobile_number: emp.mobile_number ?? "",
+      employee_email: emp.employee_email ?? "",
+      dob: emp.dob ?? "",
+      nid: emp.nid ?? "",
+      gender: emp.gender ?? "",
+      employee_type: emp.employee_type ?? "",
+      employee_status: emp.employee_status ?? "",
       present_address: emp.present_address ?? "",
       permanent_address: emp.permanent_address ?? "",
       blood_group: emp.blood_group ?? "",
       home_district: emp.home_district ?? "",
+      bank_name: emp.bank_name ?? "",
+      ac_no: emp.ac_no ?? "",
+      joining_date: emp.joining_date ?? "",
+      prl_date: emp.prl_date ?? "",
       about: emp.about ?? "",
       desig_id: emp.desig_id ? String(emp.desig_id) : "",
       dept_id: emp.dept_id ? String(emp.dept_id) : "",
@@ -217,10 +257,20 @@ export default function Employees() {
         name: formState.name.trim(),
         pf_number: formState.pf_number.trim(),
         mobile_number: formState.mobile_number.trim(),
+        employee_email: formState.employee_email.trim(),
+        dob: formState.dob || null,
+        nid: formState.nid.trim(),
+        gender: formState.gender.trim(),
+        employee_type: formState.employee_type.trim(),
+        employee_status: formState.employee_status.trim(),
         present_address: formState.present_address.trim(),
         permanent_address: formState.permanent_address.trim(),
         blood_group: formState.blood_group.trim(),
         home_district: formState.home_district.trim(),
+        bank_name: formState.bank_name.trim(),
+        ac_no: formState.ac_no.trim(),
+        joining_date: formState.joining_date || null,
+        prl_date: formState.prl_date || null,
         about: formState.about.trim(),
         designation: designationName,
         dept_id: departmentIdValue,
@@ -235,10 +285,20 @@ export default function Employees() {
           name: updated.name,
           pf_number: updated.pf_number,
           mobile_number: updated.mobile_number || null,
+          email: updated.employee_email || null,
+          dob: updated.dob || null,
+          nid: updated.nid || null,
+          gender: updated.gender || null,
+          employee_type: updated.employee_type || null,
+          employee_status: updated.employee_status || null,
           present_address: updated.present_address || null,
           permanent_address: updated.permanent_address || null,
           blood_group: updated.blood_group || null,
           home_district: updated.home_district || null,
+          bank_name: updated.bank_name || null,
+          ac_no: updated.ac_no || null,
+          joining_date: updated.joining_date || null,
+          prl_date: updated.prl_date || null,
           about: updated.about || null,
           dept_id: updated.dept_id,
           desig_id: updated.desig_id,
@@ -265,17 +325,27 @@ export default function Employees() {
         name: formState.name.trim(),
         pf_number: formState.pf_number.trim(),
         mobile_number: formState.mobile_number.trim() || null,
+        email: formState.employee_email.trim() || null,
+        dob: formState.dob || null,
+        nid: formState.nid.trim() || null,
+        gender: formState.gender.trim() || null,
+        employee_type: formState.employee_type.trim() || null,
+        employee_status: formState.employee_status.trim() || null,
         present_address: formState.present_address.trim() || null,
         permanent_address: formState.permanent_address.trim() || null,
         blood_group: formState.blood_group.trim() || null,
         home_district: formState.home_district.trim() || null,
+        bank_name: formState.bank_name.trim() || null,
+        ac_no: formState.ac_no.trim() || null,
+        joining_date: formState.joining_date || null,
+        prl_date: formState.prl_date || null,
         about: formState.about.trim() || null,
         basic_salary: Number(formState.basic_salary) || 0,
         dept_id: departmentIdValue,
         desig_id: designationIdValue
       })
       .select(
-        "id, name, pf_number, mobile_number, present_address, permanent_address, blood_group, home_district, about, basic_salary, dept_id, desig_id, departments(name), designations(name)"
+        "id, name, pf_number, mobile_number, email, dob, nid, gender, employee_type, employee_status, present_address, permanent_address, blood_group, home_district, bank_name, ac_no, joining_date, prl_date, about, basic_salary, dept_id, desig_id, departments(name), designations(name)"
       )
       .single();
 
@@ -290,10 +360,20 @@ export default function Employees() {
         name: data.name,
         pf_number: data.pf_number,
         mobile_number: data.mobile_number,
+        employee_email: data.email,
+        dob: data.dob,
+        nid: data.nid,
+        gender: data.gender,
+        employee_type: data.employee_type,
+        employee_status: data.employee_status,
         present_address: data.present_address,
         permanent_address: data.permanent_address,
         blood_group: data.blood_group,
         home_district: data.home_district,
+        bank_name: data.bank_name,
+        ac_no: data.ac_no,
+        joining_date: data.joining_date,
+        prl_date: data.prl_date,
         about: data.about,
         designation: data.designations?.name ?? "-",
         dept: data.departments?.name ?? "-",
@@ -317,10 +397,12 @@ export default function Employees() {
       emp.name,
       emp.pf_number,
       emp.mobile_number,
+      emp.employee_email,
       emp.dept,
       emp.designation,
       emp.blood_group,
-      emp.home_district
+      emp.home_district,
+      emp.nid
     ]
       .filter(Boolean)
       .join(" ")
@@ -383,19 +465,19 @@ export default function Employees() {
                   name: viewEmployee.name,
                   department: viewEmployee.dept,
                   designation: viewEmployee.designation,
-                  joiningDate: "-",
-                  employmentType: "-",
-                  status: "Active",
+                  joiningDate: viewEmployee.joining_date || "-",
+                  employmentType: viewEmployee.employee_type || "-",
+                  status: viewEmployee.employee_status || "Active",
                   phone: viewEmployee.mobile_number,
-                  email: "-",
-                  dob: "-",
-                  nid: "-",
-                  gender: "-",
+                  email: viewEmployee.employee_email || "-",
+                  dob: viewEmployee.dob || "-",
+                  nid: viewEmployee.nid || "-",
+                  gender: viewEmployee.gender || "-",
                   bloodGroup: viewEmployee.blood_group,
                   presentAddress: viewEmployee.present_address,
                   permanentAddress: viewEmployee.permanent_address,
-                  bankName: "-",
-                  bankAccount: "-",
+                  bankName: viewEmployee.bank_name || "-",
+                  bankAccount: viewEmployee.ac_no || "-",
                   bankBranch: "-"
                 }}
               />
@@ -445,6 +527,69 @@ export default function Employees() {
                 />
               </label>
               <label className="field">
+                ইমেইল
+                <input
+                  name="employee_email"
+                  type="email"
+                  value={formState.employee_email}
+                  onChange={handleChange}
+                  placeholder="name@example.com"
+                />
+              </label>
+              <label className="field">
+                জন্মতারিখ
+                <input
+                  name="dob"
+                  type="date"
+                  value={formState.dob}
+                  onChange={handleChange}
+                />
+              </label>
+              <label className="field">
+                NID
+                <input
+                  name="nid"
+                  value={formState.nid}
+                  onChange={handleChange}
+                  placeholder="NID নম্বর"
+                />
+              </label>
+              <label className="field">
+                লিঙ্গ
+                <select name="gender" value={formState.gender} onChange={handleChange}>
+                  <option value="">নির্বাচন করুন</option>
+                  <option value="Male">পুরুষ</option>
+                  <option value="Female">মহিলা</option>
+                  <option value="Other">অন্যান্য</option>
+                </select>
+              </label>
+              <label className="field">
+                কর্মীর ধরন
+                <select
+                  name="employee_type"
+                  value={formState.employee_type}
+                  onChange={handleChange}
+                >
+                  <option value="">নির্বাচন করুন</option>
+                  <option value="Permanent">Permanent</option>
+                  <option value="Contractual">Contractual</option>
+                  <option value="Daily">Daily</option>
+                </select>
+              </label>
+              <label className="field">
+                কর্মীর স্ট্যাটাস
+                <select
+                  name="employee_status"
+                  value={formState.employee_status}
+                  onChange={handleChange}
+                >
+                  <option value="">নির্বাচন করুন</option>
+                  <option value="Active">Active</option>
+                  <option value="Inactive">Inactive</option>
+                  <option value="On Leave">On Leave</option>
+                </select>
+              </label>
+              <label className="field">
                 রক্তের গ্রুপ
                 <input
                   name="blood_group"
@@ -492,6 +637,42 @@ export default function Employees() {
                   value={formState.basic_salary}
                   onChange={handleChange}
                   placeholder="35000"
+                />
+              </label>
+              <label className="field">
+                ব্যাংকের নাম
+                <input
+                  name="bank_name"
+                  value={formState.bank_name}
+                  onChange={handleChange}
+                  placeholder="ব্যাংকের নাম"
+                />
+              </label>
+              <label className="field">
+                অ্যাকাউন্ট নম্বর
+                <input
+                  name="ac_no"
+                  value={formState.ac_no}
+                  onChange={handleChange}
+                  placeholder="0000000000"
+                />
+              </label>
+              <label className="field">
+                যোগদানের তারিখ
+                <input
+                  name="joining_date"
+                  type="date"
+                  value={formState.joining_date}
+                  onChange={handleChange}
+                />
+              </label>
+              <label className="field">
+                PRL তারিখ
+                <input
+                  name="prl_date"
+                  type="date"
+                  value={formState.prl_date}
+                  onChange={handleChange}
                 />
               </label>
               <label className="field">
