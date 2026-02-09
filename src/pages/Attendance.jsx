@@ -24,17 +24,30 @@ export default function Attendance() {
         return;
       }
 
+      const { data: employeeData, error: employeeError } = await supabase
+        .from("employees")
+        .select("id, name")
+        .order("name");
+
+      if (!employeeError && employeeData) {
+        setEmployees(employeeData);
+      }
+
+      const employeeMap = new Map(
+        (employeeData ?? []).map((employee) => [employee.id, employee.name])
+      );
+
       setLoading(true);
       const { data, error } = await supabase
         .from("attendance")
-        .select("id, date, status, employee_id, employees(name)")
+        .select("id, date, status, employee_id")
         .order("date", { ascending: false });
 
       if (!error && data) {
         const normalized = data.map((row) => ({
           id: row.id,
           employee_id: row.employee_id ?? "",
-          employee_name: row.employees?.name ?? "-",
+          employee_name: employeeMap.get(row.employee_id) ?? "-",
           date: row.date,
           status: row.status
         }));
@@ -44,23 +57,7 @@ export default function Attendance() {
       setLoading(false);
     };
 
-    const loadEmployees = async () => {
-      if (!supabase) {
-        return;
-      }
-
-      const { data, error } = await supabase
-        .from("employees")
-        .select("id, name")
-        .order("name");
-
-      if (!error && data) {
-        setEmployees(data);
-      }
-    };
-
     loadAttendance();
-    loadEmployees();
   }, []);
 
   const resetForm = () => {
@@ -159,7 +156,7 @@ export default function Attendance() {
         date: formState.date,
         status: formState.status
       })
-      .select("id, date, status, employee_id, employees(name)")
+      .select("id, date, status, employee_id")
       .single();
 
     if (insertError) {
@@ -171,7 +168,7 @@ export default function Attendance() {
       const normalized = {
         id: data.id,
         employee_id: data.employee_id ?? "",
-        employee_name: data.employees?.name ?? "-",
+        employee_name: employeeName,
         date: data.date,
         status: data.status
       };
