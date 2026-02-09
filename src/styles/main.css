@@ -51,7 +51,9 @@ body {
   background: #1b263d;
   color: #fff;
 }
-
+.pt{
+  padding: 32px;
+}
 .content {
   padding: 32px;
 }
