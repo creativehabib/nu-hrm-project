@@ -76,7 +76,7 @@ export default function EmployeeInfoA4({
   );
 
   return (
-    <div className="a4">
+    <div className="a4 print-area">
       <header className="header">
         <div className="headerLeft">
           {company.logoUrl ? (
