@@ -5,13 +5,21 @@ export const useReactToPrint = ({ content, documentTitle } = {}) => {
       return;
     }
 
-    const printWindow = window.open("", "_blank", "noopener,noreferrer");
-    if (!printWindow) {
+    const iframe = document.createElement("iframe");
+    iframe.style.position = "fixed";
+    iframe.style.right = "0";
+    iframe.style.bottom = "0";
+    iframe.style.width = "0";
+    iframe.style.height = "0";
+    iframe.style.border = "0";
+    iframe.setAttribute("aria-hidden", "true");
+    document.body.appendChild(iframe);
+
+    const printDocument = iframe.contentWindow?.document;
+    if (!printDocument) {
+      document.body.removeChild(iframe);
       return;
     }
-
-    printWindow.document.open();
-    printWindow.document.title = documentTitle ?? document.title;
 
     const styleElements = Array.from(
       document.querySelectorAll("style, link[rel='stylesheet']")
@@ -20,17 +28,27 @@ export const useReactToPrint = ({ content, documentTitle } = {}) => {
       .map((style) => style.outerHTML)
       .join("\n");
 
-    printWindow.document.write(`<!doctype html>
+    printDocument.open();
+    printDocument.write(`<!doctype html>
       <html>
-        <head>${stylesMarkup}</head>
+        <head>
+          <title>${documentTitle ?? document.title}</title>
+          ${stylesMarkup}
+        </head>
         <body>${target.outerHTML}</body>
       </html>`);
-    printWindow.document.close();
-    printWindow.focus();
+    printDocument.close();
+
+    const afterPrint = () => {
+      iframe.contentWindow?.removeEventListener("afterprint", afterPrint);
+      document.body.removeChild(iframe);
+    };
+
+    iframe.contentWindow?.addEventListener("afterprint", afterPrint);
+    iframe.contentWindow?.focus();
 
     setTimeout(() => {
-      printWindow.print();
-      printWindow.close();
+      iframe.contentWindow?.print();
     }, 250);
   };
 };
