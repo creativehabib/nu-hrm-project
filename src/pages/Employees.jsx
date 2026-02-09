@@ -17,6 +17,7 @@ export default function Employees() {
 
   // ✅ printable employee (modal এর বাইরে hidden area তে render হবে)
   const [printEmployee, setPrintEmployee] = useState(null);
+  const [isPrintQueued, setIsPrintQueued] = useState(false);
 
   const [searchTerm, setSearchTerm] = useState("");
   const [error, setError] = useState("");
@@ -152,6 +153,8 @@ export default function Employees() {
   const closeView = () => {
     setIsViewOpen(false);
     setViewEmployee(null);
+    setPrintEmployee(null);
+    setIsPrintQueued(false);
   };
 
   const handleChange = (event) => {
@@ -203,7 +206,11 @@ export default function Employees() {
     documentTitle: printEmployee?.pf_number
       ? `employee-${printEmployee.pf_number}`
       : "employee-info",
-    removeAfterPrint: false
+    removeAfterPrint: false,
+    onAfterPrint: () => {
+      setIsPrintQueued(false);
+      setPrintEmployee(null);
+    }
   });
 
   // ✅ button handler: set printable data first, then print next tick
@@ -211,12 +218,17 @@ export default function Employees() {
     if (!viewEmployee) return;
 
     setPrintEmployee(viewEmployee);
-
-    // next tick so hidden DOM renders properly
-    setTimeout(() => {
-      printNow();
-    }, 80);
+    setIsPrintQueued(true);
   };
+
+  useEffect(() => {
+    if (!isPrintQueued || !printEmployee) return;
+    const frame = requestAnimationFrame(() => {
+      printNow();
+    });
+
+    return () => cancelAnimationFrame(frame);
+  }, [isPrintQueued, printEmployee, printNow]);
 
   const handleDelete = async (empId) => {
     if (!supabase) {
