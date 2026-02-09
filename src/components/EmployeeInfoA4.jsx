@@ -186,7 +186,7 @@ export default function EmployeeInfoA4({
         .metaRow{ display:flex; justify-content:space-between; gap: 4mm; }
         .metaRow span{ color:#444; }
 
-        .content{ padding-top: 8mm; }
+        .pt{ padding-top: 8mm; }
 
         .grid2{
           display:grid;
