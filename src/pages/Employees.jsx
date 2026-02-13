@@ -177,6 +177,9 @@ export default function Employees() {
   const handleChange = (event) => {
     const { name, value } = event.target;
     setFormState((prev) => ({ ...prev, [name]: value }));
+    if (error) {
+      setError("");
+    }
   };
 
   const handleSearchChange = (event) => {
@@ -345,13 +348,89 @@ export default function Employees() {
       return;
     }
 
+    const uniqueFields = [
+      {
+        column: "pf_number",
+        key: "pf_number",
+        label: "PF নম্বর",
+        value: formState.pf_number.trim(),
+        normalize: (value) => value
+      },
+      {
+        column: "mobile_number",
+        key: "mobile_number",
+        label: "মোবাইল নম্বর",
+        value: formState.mobile_number.trim(),
+        normalize: (value) => value
+      },
+      {
+        column: "nid",
+        key: "nid",
+        label: "NID",
+        value: formState.nid.trim(),
+        normalize: (value) => value
+      },
+      {
+        column: "email",
+        key: "employee_email",
+        label: "ইমেইল",
+        value: formState.employee_email.trim(),
+        normalize: (value) => value.toLowerCase()
+      }
+    ];
+
+    for (const field of uniqueFields) {
+      if (!field.value) {
+        continue;
+      }
+
+      const normalizedValue = field.normalize(field.value);
+      const localDuplicate = employees.find((employee) => {
+        if (editingId && employee.id === editingId) {
+          return false;
+        }
+
+        const employeeValue = (employee[field.key] ?? "").trim();
+        return field.normalize(employeeValue) === normalizedValue;
+      });
+
+      if (localDuplicate) {
+        setError(`${field.label} ইতোমধ্যে ব্যবহৃত হয়েছে। অনুগ্রহ করে ভিন্ন ${field.label} দিন।`);
+        return;
+      }
+
+      let duplicateQuery = supabase.from("employees").select("id").limit(1);
+
+      if (field.column === "email") {
+        duplicateQuery = duplicateQuery.ilike(field.column, normalizedValue);
+      } else {
+        duplicateQuery = duplicateQuery.eq(field.column, normalizedValue);
+      }
+
+      if (editingId) {
+        duplicateQuery = duplicateQuery.neq("id", editingId);
+      }
+
+      const { data: duplicateData, error: duplicateError } = await duplicateQuery;
+
+      if (duplicateError) {
+        setError(`${field.label} যাচাই করা যায়নি। আবার চেষ্টা করুন।`);
+        return;
+      }
+
+      if ((duplicateData?.length ?? 0) > 0) {
+        setError(`${field.label} ইতোমধ্যে ব্যবহৃত হয়েছে। অনুগ্রহ করে ভিন্ন ${field.label} দিন।`);
+        return;
+      }
+    }
+
     if (editingId) {
       const updated = {
         id: editingId,
         name: formState.name.trim(),
         pf_number: formState.pf_number.trim(),
         mobile_number: formState.mobile_number.trim(),
-        employee_email: formState.employee_email.trim(),
+        employee_email: formState.employee_email.trim().toLowerCase(),
         dob: formState.dob || null,
         nid: formState.nid.trim(),
         gender: formState.gender.trim(),
@@ -419,7 +498,7 @@ export default function Employees() {
         name: formState.name.trim(),
         pf_number: formState.pf_number.trim(),
         mobile_number: formState.mobile_number.trim() || null,
-        email: formState.employee_email.trim() || null,
+        email: formState.employee_email.trim().toLowerCase() || null,
         dob: formState.dob || null,
         nid: formState.nid.trim() || null,
         gender: formState.gender.trim() || null,
@@ -607,6 +686,11 @@ export default function Employees() {
               </button>
             </header>
             <form className="form-grid" onSubmit={handleSubmit}>
+              {error && (
+                <p className="form-error field-full" role="alert" aria-live="assertive">
+                  {error}
+                </p>
+              )}
               <label className="field">
                 নাম
                 <input
@@ -825,7 +909,6 @@ export default function Employees() {
                 </div>
               </div>
             </form>
-            {error && <p className="form-error">{error}</p>}
           </div>
         </div>
       )}
