@@ -4,6 +4,7 @@ import { supabase } from "../supabaseClient";
 import EmployeeInfoA4 from "../components/EmployeeInfoA4";
 
 export default function Employees() {
+  const ITEMS_PER_PAGE = 10;
   const [employees, setEmployees] = useState([]);
   const [departments, setDepartments] = useState([]);
   const [designations, setDesignations] = useState([]);
@@ -12,6 +13,8 @@ export default function Employees() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isViewOpen, setIsViewOpen] = useState(false);
   const [viewEmployee, setViewEmployee] = useState(null);
+  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
 
   // ✅ printable employee (modal এর বাইরে hidden area তে render হবে)
   const [printEmployee, setPrintEmployee] = useState(null);
@@ -178,6 +181,7 @@ export default function Employees() {
 
   const handleSearchChange = (event) => {
     setSearchTerm(event.target.value);
+    setCurrentPage(1);
   };
 
   const handleEdit = (emp) => {
@@ -253,7 +257,21 @@ export default function Employees() {
     return () => cancelAnimationFrame(frame);
   }, [isPrintQueued, printEmployee]);
 
-  const handleDelete = async (empId) => {
+  const openDeleteConfirmation = (employee) => {
+    setDeleteTarget(employee);
+  };
+
+  const closeDeleteConfirmation = () => {
+    setDeleteTarget(null);
+  };
+
+  const handleDelete = async () => {
+    if (!deleteTarget) {
+      return;
+    }
+
+    const empId = deleteTarget.id;
+
     if (!supabase) {
       setError("Supabase কনফিগার হয়নি।");
       return;
@@ -270,7 +288,39 @@ export default function Employees() {
     }
 
     setError("");
-    setEmployees((prev) => prev.filter((emp) => emp.id !== empId));
+    setEmployees((prev) => {
+      const updated = prev.filter((emp) => emp.id !== empId);
+      const nextTotalPages = Math.max(
+        1,
+        Math.ceil(
+          updated.filter((emp) => {
+            if (!normalizedSearch) {
+              return true;
+            }
+
+            const fields = [
+              emp.name,
+              emp.pf_number,
+              emp.mobile_number,
+              emp.employee_email,
+              emp.dept,
+              emp.designation,
+              emp.blood_group,
+              emp.home_district,
+              emp.nid
+            ]
+              .filter(Boolean)
+              .join(" ")
+              .toLowerCase();
+
+            return fields.includes(normalizedSearch);
+          }).length / ITEMS_PER_PAGE
+        )
+      );
+      setCurrentPage((prevPage) => Math.min(prevPage, nextTotalPages));
+      return updated;
+    });
+    closeDeleteConfirmation();
   };
 
   const handleSubmit = async (event) => {
@@ -454,6 +504,22 @@ export default function Employees() {
 
     return fields.includes(normalizedSearch);
   });
+
+  const totalPages = Math.max(1, Math.ceil(filteredEmployees.length / ITEMS_PER_PAGE));
+  const safeCurrentPage = Math.min(currentPage, totalPages);
+  const startIndex = (safeCurrentPage - 1) * ITEMS_PER_PAGE;
+  const paginatedEmployees = filteredEmployees.slice(
+    startIndex,
+    startIndex + ITEMS_PER_PAGE
+  );
+
+  const handlePreviousPage = () => {
+    setCurrentPage((prev) => Math.max(prev - 1, 1));
+  };
+
+  const handleNextPage = () => {
+    setCurrentPage((prev) => Math.min(prev + 1, totalPages));
+  };
 
   return (
     <div>
@@ -764,6 +830,34 @@ export default function Employees() {
         </div>
       )}
 
+      {deleteTarget && (
+        <div className="modal-overlay" role="presentation">
+          <div className="modal card" role="dialog" aria-modal="true">
+            <header className="modal-header">
+              <div>
+                <h3>কর্মী মুছে ফেলবেন?</h3>
+                <p>
+                  আপনি <strong>{deleteTarget.name}</strong> ({deleteTarget.pf_number})-এর
+                  তথ্য স্থায়ীভাবে মুছে ফেলতে যাচ্ছেন।
+                </p>
+              </div>
+            </header>
+            <div className="inline-actions">
+              <button className="button danger" type="button" onClick={handleDelete}>
+                হ্যাঁ, মুছুন
+              </button>
+              <button
+                className="button secondary"
+                type="button"
+                onClick={closeDeleteConfirmation}
+              >
+                না, বাতিল
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <section className="section">
         <div className="table-toolbar">
           <div className="employee-count" aria-live="polite">
@@ -804,7 +898,7 @@ export default function Employees() {
                 <td colSpan={8}>কোন মিল পাওয়া যায়নি।</td>
               </tr>
             ) : (
-              filteredEmployees.map((emp) => (
+              paginatedEmployees.map((emp) => (
                 <tr key={emp.id}>
                   <td>{emp.name}</td>
                   <td>{emp.pf_number}</td>
@@ -831,7 +925,7 @@ export default function Employees() {
                       <button
                         className="button danger"
                         type="button"
-                        onClick={() => handleDelete(emp.id)}
+                        onClick={() => openDeleteConfirmation(emp)}
                       >
                         মুছুন
                       </button>
@@ -842,6 +936,35 @@ export default function Employees() {
             )}
           </tbody>
         </table>
+        {filteredEmployees.length > 0 && (
+          <div className="table-toolbar">
+            <div className="employee-count">
+              <span>
+                দেখানো হচ্ছে: {startIndex + 1}-
+                {Math.min(startIndex + ITEMS_PER_PAGE, filteredEmployees.length)}
+              </span>
+              <span>পৃষ্ঠা: {safeCurrentPage} / {totalPages}</span>
+            </div>
+            <div className="inline-actions">
+              <button
+                className="button secondary"
+                type="button"
+                onClick={handlePreviousPage}
+                disabled={safeCurrentPage === 1}
+              >
+                পূর্বের পৃষ্ঠা
+              </button>
+              <button
+                className="button secondary"
+                type="button"
+                onClick={handleNextPage}
+                disabled={safeCurrentPage === totalPages}
+              >
+                পরের পৃষ্ঠা
+              </button>
+            </div>
+          </div>
+        )}
         {loading && <p>লোড হচ্ছে...</p>}
       </section>
     </div>
