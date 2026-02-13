@@ -345,6 +345,61 @@ export default function Employees() {
       return;
     }
 
+    const uniqueFields = [
+      {
+        column: "pf_number",
+        label: "PF নম্বর",
+        value: formState.pf_number.trim(),
+        transform: (value) => value
+      },
+      {
+        column: "mobile_number",
+        label: "মোবাইল নম্বর",
+        value: formState.mobile_number.trim(),
+        transform: (value) => value
+      },
+      {
+        column: "nid",
+        label: "NID",
+        value: formState.nid.trim(),
+        transform: (value) => value
+      },
+      {
+        column: "email",
+        label: "ইমেইল",
+        value: formState.employee_email.trim(),
+        transform: (value) => value.toLowerCase()
+      }
+    ];
+
+    for (const field of uniqueFields) {
+      if (!field.value) {
+        continue;
+      }
+
+      let duplicateQuery = supabase
+        .from("employees")
+        .select("id")
+        .eq(field.column, field.transform(field.value))
+        .limit(1);
+
+      if (editingId) {
+        duplicateQuery = duplicateQuery.neq("id", editingId);
+      }
+
+      const { data: duplicateData, error: duplicateError } = await duplicateQuery;
+
+      if (duplicateError) {
+        setError(`ডুপ্লিকেট ${field.label} যাচাই করা যায়নি: ${duplicateError.message}`);
+        return;
+      }
+
+      if ((duplicateData?.length ?? 0) > 0) {
+        setError(`${field.label} ইতোমধ্যে ব্যবহৃত হয়েছে। অনুগ্রহ করে ভিন্ন ${field.label} দিন।`);
+        return;
+      }
+    }
+
     if (editingId) {
       const updated = {
         id: editingId,
