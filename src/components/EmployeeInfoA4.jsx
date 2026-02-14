@@ -244,8 +244,8 @@ export default function EmployeeInfoA4({
         }
 
         .headerCenter{ flex: 1; text-align:center; }
-        .companyName{ font-size: 18px; font-weight: 700; }
-        .companyMeta{ margin-top: 2mm; font-size: 11px; color:#444; }
+        .companyName{ font-size: 25px; font-weight: 700; }
+        .companyMeta{ margin-top: 2mm; font-size: 14px; color:#444; }
         .docTitle{
           margin-top: 4mm;
           display:inline-block;
