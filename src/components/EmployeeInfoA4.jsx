@@ -165,7 +165,10 @@ export default function EmployeeInfoA4({
         <div className="headerCenter">
           <div className="companyName">{company.name}</div>
           <div className="companyMeta">
-            {company.address} • {company.phone} • {company.email}
+            {company.address}
+          </div>
+          <div className="companyMeta">
+              {company.phone} • {company.email}
           </div>
           <div className="docTitle">EMPLOYEE INFORMATION SHEET</div>
         </div>
