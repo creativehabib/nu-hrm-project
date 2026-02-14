@@ -31,6 +31,58 @@ export default function EmployeeInfoA4({
     basicSalary: "35000"
   }
 }) {
+  const formatAsIsoDate = (dateValue) => {
+    if (!dateValue) {
+      return "-";
+    }
+
+    const parsedDate = new Date(dateValue);
+    if (Number.isNaN(parsedDate.getTime())) {
+      return "-";
+    }
+
+    return parsedDate.toISOString().slice(0, 10);
+  };
+
+  const calculatePrlDate = (dob) => {
+    if (!dob) {
+      return null;
+    }
+
+    const parsedDob = new Date(dob);
+    if (Number.isNaN(parsedDob.getTime())) {
+      return null;
+    }
+
+    const prlDate = new Date(parsedDob);
+    prlDate.setFullYear(prlDate.getFullYear() + 60);
+
+    return prlDate;
+  };
+
+  const getRemainingServiceText = (prlDate) => {
+    if (!prlDate) {
+      return "-";
+    }
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const endDate = new Date(prlDate);
+    endDate.setHours(0, 0, 0, 0);
+
+    const diffInMs = endDate.getTime() - today.getTime();
+
+    if (diffInMs < 0) {
+      return "আপনার চাকুরী কাল শেষ হয়েছে";
+    }
+
+    const remainingDays = Math.ceil(diffInMs / (1000 * 60 * 60 * 24));
+    return `আপনার চাকুরী কাল আছে ${remainingDays} দিন`;
+  };
+
+  const calculatedPrlDate = calculatePrlDate(employee.dob);
+
   const infoRows = [
     { label: "Employee ID", value: employee.id },
     { label: "Full Name", value: employee.name },
@@ -47,7 +99,9 @@ export default function EmployeeInfoA4({
     { label: "Date of Birth", value: employee.dob },
     { label: "NID", value: employee.nid },
     { label: "Gender", value: employee.gender },
-    { label: "Blood Group", value: employee.bloodGroup }
+    { label: "Blood Group", value: employee.bloodGroup },
+    { label: "PRL Date", value: formatAsIsoDate(calculatedPrlDate) },
+    { label: "Remaining Service", value: getRemainingServiceText(calculatedPrlDate) }
   ];
 
   const addressRows = [
