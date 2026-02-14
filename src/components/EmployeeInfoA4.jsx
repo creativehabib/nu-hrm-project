@@ -77,8 +77,26 @@ export default function EmployeeInfoA4({
       return "আপনার চাকুরী কাল শেষ হয়েছে";
     }
 
-    const remainingDays = Math.ceil(diffInMs / (1000 * 60 * 60 * 24));
-    return `আপনার চাকুরী কাল আছে ${remainingDays} দিন`;
+
+    let years = prlDate.getFullYear() - today.getFullYear();
+    let months = prlDate.getMonth() - today.getMonth();
+    let days = prlDate.getDate() - today.getDate();
+
+    if (days < 0) {
+      const previousMonthLastDate = new Date(prlDate.getFullYear(), prlDate.getMonth(), 0).getDate();
+      days += previousMonthLastDate;
+      months -= 1;
+    }
+
+    if (months < 0) {
+      months += 12;
+      years -= 1;
+    }
+
+    const formatUnit = (value) => String(Math.max(value, 0)).padStart(2, "0");
+    const duration = `${formatUnit(years)} বছর ${formatUnit(months)} মাস ${formatUnit(days)} দিন`;
+
+    return `আপনার চাকুরী কাল আছে ${duration}`;
   };
 
   const calculatedPrlDate = calculatePrlDate(employee.dob);
