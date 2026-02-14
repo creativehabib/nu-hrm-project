@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../supabaseClient";
+import { formatProjectDate } from "../utils/date";
 
 export default function Departments() {
   const [departments, setDepartments] = useState([]);
@@ -193,7 +194,7 @@ export default function Departments() {
                 <tr key={dept.id}>
                   <td>{dept.id}</td>
                   <td>{dept.name}</td>
-                  <td>{new Date(dept.created_at).toLocaleDateString("bn-BD")}</td>
+                  <td>{formatProjectDate(dept.created_at)}</td>
                   <td>
                     <span className="badge success">সক্রিয়</span>
                   </td>

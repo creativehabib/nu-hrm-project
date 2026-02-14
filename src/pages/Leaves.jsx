@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../supabaseClient";
+import { formatProjectDate } from "../utils/date";
 
 const statusOptions = [
   { value: "Pending", label: "অপেক্ষমান" },
@@ -328,12 +329,12 @@ export default function Leaves() {
       return "-";
     }
 
-    const start = new Date(request.start_date).toLocaleDateString("bn-BD");
+    const start = formatProjectDate(request.start_date);
     if (!request.end_date || request.end_date === request.start_date) {
       return start;
     }
 
-    const end = new Date(request.end_date).toLocaleDateString("bn-BD");
+    const end = formatProjectDate(request.end_date);
     return `${start} - ${end}`;
   };
 
@@ -550,7 +551,7 @@ export default function Leaves() {
             ) : (
               holidays.map((holiday) => (
                 <tr key={holiday.id}>
-                  <td>{new Date(holiday.date).toLocaleDateString("bn-BD")}</td>
+                  <td>{formatProjectDate(holiday.date)}</td>
                   <td>{holiday.title}</td>
                   <td>
                     <div className="inline-actions">

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../supabaseClient";
+import { formatProjectDate } from "../utils/date";
 
 const statusOptions = [
   { value: "Present", label: "উপস্থিত" },
@@ -254,7 +255,7 @@ export default function Attendance() {
               records.map((record) => (
                 <tr key={record.id}>
                   <td>{record.employee_name}</td>
-                  <td>{new Date(record.date).toLocaleDateString("bn-BD")}</td>
+                  <td>{formatProjectDate(record.date)}</td>
                   <td>
                     <span
                       className={`badge ${
