@@ -1,4 +1,5 @@
 import React from "react";
+import { formatProjectDate } from "../utils/date";
 
 export default function EmployeeInfoA4({
   company = {
@@ -31,19 +32,6 @@ export default function EmployeeInfoA4({
     basicSalary: "35000"
   }
 }) {
-  const formatAsIsoDate = (dateValue) => {
-    if (!dateValue) {
-      return "-";
-    }
-
-    const parsedDate = new Date(dateValue);
-    if (Number.isNaN(parsedDate.getTime())) {
-      return "-";
-    }
-
-    return parsedDate.toISOString().slice(0, 10);
-  };
-
   const calculatePrlDate = (dob) => {
     if (!dob) {
       return null;
@@ -106,7 +94,7 @@ export default function EmployeeInfoA4({
     { label: "Full Name", value: employee.name },
     { label: "Department", value: employee.department },
     { label: "Designation", value: employee.designation },
-    { label: "Joining Date", value: employee.joiningDate },
+    { label: "Joining Date", value: formatProjectDate(employee.joiningDate) },
     { label: "Employment Type", value: employee.employmentType },
     { label: "Status", value: employee.status }
   ];
@@ -114,11 +102,11 @@ export default function EmployeeInfoA4({
   const personalRows = [
     { label: "Phone", value: employee.phone },
     { label: "Email", value: employee.email },
-    { label: "Date of Birth", value: employee.dob },
+    { label: "Date of Birth", value: formatProjectDate(employee.dob) },
     { label: "NID", value: employee.nid },
     { label: "Gender", value: employee.gender },
     { label: "Blood Group", value: employee.bloodGroup },
-    { label: "PRL Date", value: formatAsIsoDate(calculatedPrlDate) },
+    { label: "PRL Date", value: formatProjectDate(calculatedPrlDate) },
     { label: "Remaining Service", value: getRemainingServiceText(calculatedPrlDate) }
   ];
 

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../supabaseClient";
+import { formatProjectDate } from "../utils/date";
 
 export default function Designations() {
   const [designations, setDesignations] = useState([]);
@@ -203,7 +204,7 @@ export default function Designations() {
                   <td>{row.id}</td>
                   <td>{row.name}</td>
                   <td>{row.grade || "-"}</td>
-                  <td>{new Date(row.created_at).toLocaleDateString("bn-BD")}</td>
+                  <td>{formatProjectDate(row.created_at)}</td>
                   <td>
                     <div className="inline-actions">
                       <button

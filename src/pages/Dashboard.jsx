@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "../supabaseClient";
+import { formatProjectDate } from "../utils/date";
 
 export default function Dashboard() {
   const [metrics, setMetrics] = useState([
@@ -88,7 +89,7 @@ export default function Dashboard() {
         const activities = data.map((row) => ({
           title: "নতুন কর্মী যোগ হয়েছে",
           detail: `${row.name}${row.departments?.name ? ` - ${row.departments.name}` : ""}`,
-          time: row.created_at ? new Date(row.created_at).toLocaleDateString("bn-BD") : "-"
+          time: row.created_at ? formatProjectDate(row.created_at) : "-"
         }));
         setRecentActivities(activities);
       }
