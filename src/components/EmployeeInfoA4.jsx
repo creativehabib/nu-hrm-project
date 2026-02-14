@@ -96,7 +96,7 @@ export default function EmployeeInfoA4({
     const formatUnit = (value) => String(Math.max(value, 0)).padStart(2, "0");
     const duration = `${formatUnit(years)} বছর ${formatUnit(months)} মাস ${formatUnit(days)} দিন`;
 
-    return `আপনার চাকুরী কাল আছে ${duration}`;
+    return `${duration}`;
   };
 
   const calculatedPrlDate = calculatePrlDate(employee.dob);
