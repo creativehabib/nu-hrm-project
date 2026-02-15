@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import ConfirmDeleteModal from "../components/ConfirmDeleteModal";
 import { supabase } from "../supabaseClient";
 import { formatProjectDate } from "../utils/date";
 
@@ -10,6 +11,7 @@ export default function Departments() {
     name: ""
   });
   const [error, setError] = useState("");
+  const [deleteTarget, setDeleteTarget] = useState(null);
 
   useEffect(() => {
     const loadDepartments = async () => {
@@ -70,6 +72,23 @@ export default function Departments() {
 
     setError("");
     setDepartments((prev) => prev.filter((dept) => dept.id !== deptId));
+    setDeleteTarget(null);
+  };
+
+  const openDeleteConfirmation = (department) => {
+    setDeleteTarget(department);
+  };
+
+  const closeDeleteConfirmation = () => {
+    setDeleteTarget(null);
+  };
+
+  const confirmDelete = () => {
+    if (!deleteTarget) {
+      return;
+    }
+
+    handleDelete(deleteTarget.id);
   };
 
   const handleSubmit = async (event) => {
@@ -210,7 +229,7 @@ export default function Departments() {
                       <button
                         className="button danger"
                         type="button"
-                        onClick={() => handleDelete(dept.id)}
+                        onClick={() => openDeleteConfirmation(dept)}
                       >
                         মুছুন
                       </button>
@@ -223,6 +242,20 @@ export default function Departments() {
         </table>
         {loading && <p>লোড হচ্ছে...</p>}
       </section>
+
+      {deleteTarget && (
+        <ConfirmDeleteModal
+          title="বিভাগ মুছে ফেলবেন?"
+          description={
+            <>
+              আপনি <strong>{deleteTarget.name}</strong> বিভাগটি স্থায়ীভাবে মুছে ফেলতে
+              যাচ্ছেন।
+            </>
+          }
+          onConfirm={confirmDelete}
+          onCancel={closeDeleteConfirmation}
+        />
+      )}
     </div>
   );
 }

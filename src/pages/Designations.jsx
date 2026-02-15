@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import ConfirmDeleteModal from "../components/ConfirmDeleteModal";
 import { supabase } from "../supabaseClient";
 import { formatProjectDate } from "../utils/date";
 
@@ -11,6 +12,7 @@ export default function Designations() {
     grade: ""
   });
   const [error, setError] = useState("");
+  const [deleteTarget, setDeleteTarget] = useState(null);
 
   const isDuplicateDesignationName = (name, currentId = null) => {
     const normalizedName = name.trim().toLowerCase();
@@ -83,6 +85,23 @@ export default function Designations() {
 
     setError("");
     setDesignations((prev) => prev.filter((row) => row.id !== designationId));
+    setDeleteTarget(null);
+  };
+
+  const openDeleteConfirmation = (designation) => {
+    setDeleteTarget(designation);
+  };
+
+  const closeDeleteConfirmation = () => {
+    setDeleteTarget(null);
+  };
+
+  const confirmDelete = () => {
+    if (!deleteTarget) {
+      return;
+    }
+
+    handleDelete(deleteTarget.id);
   };
 
   const handleSubmit = async (event) => {
@@ -245,7 +264,7 @@ export default function Designations() {
                       <button
                         className="button danger"
                         type="button"
-                        onClick={() => handleDelete(row.id)}
+                        onClick={() => openDeleteConfirmation(row)}
                       >
                         মুছুন
                       </button>
@@ -258,6 +277,20 @@ export default function Designations() {
         </table>
         {loading && <p>লোড হচ্ছে...</p>}
       </section>
+
+      {deleteTarget && (
+        <ConfirmDeleteModal
+          title="পদবী মুছে ফেলবেন?"
+          description={
+            <>
+              আপনি <strong>{deleteTarget.name}</strong> পদবীটি স্থায়ীভাবে মুছে ফেলতে
+              যাচ্ছেন।
+            </>
+          }
+          onConfirm={confirmDelete}
+          onCancel={closeDeleteConfirmation}
+        />
+      )}
     </div>
   );
 }
