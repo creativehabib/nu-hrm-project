@@ -12,6 +12,17 @@ export default function Designations() {
   });
   const [error, setError] = useState("");
 
+  const isDuplicateDesignationName = (name, currentId = null) => {
+    const normalizedName = name.trim().toLowerCase();
+
+    return designations.some((designation) => {
+      const designationName = designation.name?.trim().toLowerCase();
+      const isSameRecord = currentId && designation.id === currentId;
+
+      return !isSameRecord && designationName === normalizedName;
+    });
+  };
+
   useEffect(() => {
     const loadDesignations = async () => {
       if (!supabase) {
@@ -76,8 +87,15 @@ export default function Designations() {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-    if (!formState.name.trim()) {
+    const trimmedName = formState.name.trim();
+
+    if (!trimmedName) {
       setError("পদবীর নাম লিখুন।");
+      return;
+    }
+
+    if (isDuplicateDesignationName(trimmedName, editingId)) {
+      setError("পদবী অবশ্যই ইউনিক হতে হবে।");
       return;
     }
 
@@ -93,12 +111,17 @@ export default function Designations() {
       const { error: updateError } = await supabase
         .from("designations")
         .update({
-          name: updated.name,
+          name: trimmedName,
           grade: updated.grade || null
         })
         .eq("id", editingId);
 
       if (updateError) {
+        if (updateError.code === "23505") {
+          setError("পদবী অবশ্যই ইউনিক হতে হবে।");
+          return;
+        }
+
         setError(`পদবী আপডেট হয়নি: ${updateError.message}`);
         return;
       }
@@ -114,13 +137,18 @@ export default function Designations() {
     const { data, error: insertError } = await supabase
       .from("designations")
       .insert({
-        name: formState.name.trim(),
+        name: trimmedName,
         grade: formState.grade.trim() || null
       })
       .select("id, name, grade, created_at")
       .single();
 
     if (insertError) {
+      if (insertError.code === "23505") {
+        setError("পদবী অবশ্যই ইউনিক হতে হবে।");
+        return;
+      }
+
       setError(`পদবী সংরক্ষণ হয়নি: ${insertError.message}`);
       return;
     }
