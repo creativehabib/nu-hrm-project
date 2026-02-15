@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import ConfirmDeleteModal from "../components/ConfirmDeleteModal";
 import { supabase } from "../supabaseClient";
 import { formatProjectDate } from "../utils/date";
 
@@ -18,6 +19,7 @@ export default function Attendance() {
     status: "Present"
   });
   const [error, setError] = useState("");
+  const [deleteTarget, setDeleteTarget] = useState(null);
 
   useEffect(() => {
     const loadAttendance = async () => {
@@ -100,6 +102,23 @@ export default function Attendance() {
 
     setError("");
     setRecords((prev) => prev.filter((record) => record.id !== recordId));
+    setDeleteTarget(null);
+  };
+
+  const openDeleteConfirmation = (record) => {
+    setDeleteTarget(record);
+  };
+
+  const closeDeleteConfirmation = () => {
+    setDeleteTarget(null);
+  };
+
+  const confirmDelete = () => {
+    if (!deleteTarget) {
+      return;
+    }
+
+    handleDelete(deleteTarget.id);
   };
 
   const handleSubmit = async (event) => {
@@ -277,7 +296,7 @@ export default function Attendance() {
                       <button
                         className="button danger"
                         type="button"
-                        onClick={() => handleDelete(record.id)}
+                        onClick={() => openDeleteConfirmation(record)}
                       >
                         মুছুন
                       </button>
@@ -290,6 +309,21 @@ export default function Attendance() {
         </table>
         {loading && <p>লোড হচ্ছে...</p>}
       </section>
+
+      {deleteTarget && (
+        <ConfirmDeleteModal
+          title="হাজিরা রেকর্ড মুছে ফেলবেন?"
+          description={
+            <>
+              আপনি <strong>{deleteTarget.employee_name}</strong>-এর{' '}
+              <strong>{formatProjectDate(deleteTarget.date)}</strong> তারিখের হাজিরা
+              স্থায়ীভাবে মুছে ফেলতে যাচ্ছেন।
+            </>
+          }
+          onConfirm={confirmDelete}
+          onCancel={closeDeleteConfirmation}
+        />
+      )}
     </div>
   );
 }

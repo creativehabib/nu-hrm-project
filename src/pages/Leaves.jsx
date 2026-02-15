@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import ConfirmDeleteModal from "../components/ConfirmDeleteModal";
 import { supabase } from "../supabaseClient";
 import { formatProjectDate } from "../utils/date";
 
@@ -30,6 +31,8 @@ export default function Leaves() {
   });
   const [requestError, setRequestError] = useState("");
   const [holidayError, setHolidayError] = useState("");
+  const [requestDeleteTarget, setRequestDeleteTarget] = useState(null);
+  const [holidayDeleteTarget, setHolidayDeleteTarget] = useState(null);
 
   useEffect(() => {
     const loadHolidays = async () => {
@@ -156,6 +159,7 @@ export default function Leaves() {
 
     setRequestError("");
     setRequests((prev) => prev.filter((request) => request.id !== requestId));
+    setRequestDeleteTarget(null);
   };
 
   const handleHolidayDelete = async (holidayId) => {
@@ -176,6 +180,39 @@ export default function Leaves() {
 
     setHolidayError("");
     setHolidays((prev) => prev.filter((holiday) => holiday.id !== holidayId));
+    setHolidayDeleteTarget(null);
+  };
+
+  const openRequestDeleteConfirmation = (request) => {
+    setRequestDeleteTarget(request);
+  };
+
+  const closeRequestDeleteConfirmation = () => {
+    setRequestDeleteTarget(null);
+  };
+
+  const confirmRequestDelete = () => {
+    if (!requestDeleteTarget) {
+      return;
+    }
+
+    handleRequestDelete(requestDeleteTarget.id);
+  };
+
+  const openHolidayDeleteConfirmation = (holiday) => {
+    setHolidayDeleteTarget(holiday);
+  };
+
+  const closeHolidayDeleteConfirmation = () => {
+    setHolidayDeleteTarget(null);
+  };
+
+  const confirmHolidayDelete = () => {
+    if (!holidayDeleteTarget) {
+      return;
+    }
+
+    handleHolidayDelete(holidayDeleteTarget.id);
   };
 
   const handleRequestSubmit = async (event) => {
@@ -482,7 +519,7 @@ export default function Leaves() {
                       <button
                         className="button danger"
                         type="button"
-                        onClick={() => handleRequestDelete(request.id)}
+                        onClick={() => openRequestDeleteConfirmation(request)}
                       >
                         মুছুন
                       </button>
@@ -565,7 +602,7 @@ export default function Leaves() {
                       <button
                         className="button danger"
                         type="button"
-                        onClick={() => handleHolidayDelete(holiday.id)}
+                        onClick={() => openHolidayDeleteConfirmation(holiday)}
                       >
                         মুছুন
                       </button>
@@ -578,6 +615,34 @@ export default function Leaves() {
         </table>
         {loadingHolidays && <p>লোড হচ্ছে...</p>}
       </section>
+
+      {requestDeleteTarget && (
+        <ConfirmDeleteModal
+          title="ছুটি আবেদন মুছে ফেলবেন?"
+          description={
+            <>
+              আপনি <strong>{requestDeleteTarget.employee_name ?? requestDeleteTarget.employee_id}</strong>-এর
+              <strong> {requestDeleteTarget.leave_type}</strong> আবেদনটি স্থায়ীভাবে মুছে ফেলতে যাচ্ছেন।
+            </>
+          }
+          onConfirm={confirmRequestDelete}
+          onCancel={closeRequestDeleteConfirmation}
+        />
+      )}
+
+      {holidayDeleteTarget && (
+        <ConfirmDeleteModal
+          title="হলিডে মুছে ফেলবেন?"
+          description={
+            <>
+              আপনি <strong>{holidayDeleteTarget.title}</strong> ({formatProjectDate(holidayDeleteTarget.date)})
+              হলিডেটি স্থায়ীভাবে মুছে ফেলতে যাচ্ছেন।
+            </>
+          }
+          onConfirm={confirmHolidayDelete}
+          onCancel={closeHolidayDeleteConfirmation}
+        />
+      )}
     </div>
   );
 }
